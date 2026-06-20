@@ -1,0 +1,78 @@
+2026-06-12 13:44:46,221 - ERROR - root - Value error during processing
+Traceback (most recent call last):
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\app.py", line 112, in main
+    cleaned_df, extraction_quality = extractor(str(uploaded_path), pdf_password or None)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\extractors\hdfc_ex.py", line 11, in extract_hdfc
+    return extract_hdfc_transactions(path, password=pdf_password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\utils\pdf_utils.py", line 284, in extract_hdfc_transactions
+    raise ValueError("No transactions found in this PDF. The file may be unsupported or not a valid HDFC statement.")
+ValueError: No transactions found in this PDF. The file may be unsupported or not a valid HDFC statement.
+2026-06-12 13:45:29,412 - ERROR - root - Value error during processing
+Traceback (most recent call last):
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\app.py", line 112, in main
+    cleaned_df, extraction_quality = extractor(str(uploaded_path), pdf_password or None)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\extractors\hdfc_ex.py", line 11, in extract_hdfc
+    return extract_hdfc_transactions(path, password=pdf_password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\utils\pdf_utils.py", line 284, in extract_hdfc_transactions
+    raise ValueError("No transactions found in this PDF. The file may be unsupported or not a valid HDFC statement.")
+ValueError: No transactions found in this PDF. The file may be unsupported or not a valid HDFC statement.
+2026-06-12 14:16:48,914 - ERROR - root - Value error during processing
+Traceback (most recent call last):
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\app.py", line 117, in main
+    cleaned_df, extraction_quality = extractor(str(uploaded_path), pdf_password or None)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\extractors\hdfc_ex.py", line 11, in extract_hdfc
+    return extract_hdfc_transactions(path, password=pdf_password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\utils\pdf_utils.py", line 284, in extract_hdfc_transactions
+    return {
+            ^
+ValueError: No transactions found in this PDF. The file may be unsupported or not a valid HDFC statement.
+2026-06-12 14:17:29,861 - ERROR - root - Value error during processing
+Traceback (most recent call last):
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\app.py", line 117, in main
+    cleaned_df, extraction_quality = extractor(str(uploaded_path), pdf_password or None)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\extractors\hdfc_ex.py", line 11, in extract_hdfc
+    return extract_hdfc_transactions(path, password=pdf_password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\utils\pdf_utils.py", line 284, in extract_hdfc_transactions
+    return {
+            ^
+ValueError: No transactions found in this PDF. The file may be unsupported or not a valid HDFC statement.
+2026-06-12 14:18:09,746 - ERROR - root - Unexpected error
+Traceback (most recent call last):
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\app.py", line 122, in main
+    metadata = extract_statement_metadata(uploaded_path, bank_name=bank, password=pdf_password or None)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: extract_statement_metadata() got an unexpected keyword argument 'bank_name'
+2026-06-12 14:19:14,880 - ERROR - root - Unexpected error
+Traceback (most recent call last):
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\app.py", line 122, in main
+    metadata = extract_statement_metadata(uploaded_path, bank_name=bank, password=pdf_password or None)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: extract_statement_metadata() got an unexpected keyword argument 'bank_name'
+2026-06-12 14:25:10,020 - ERROR - root - Value error during processing
+Traceback (most recent call last):
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\app.py", line 117, in main
+    cleaned_df, extraction_quality = extractor(str(uploaded_path), pdf_password or None)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\extractors\generic_ex.py", line 11, in extract_generic
+    return extract_hdfc_transactions(path, password=pdf_password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\utils\pdf_utils.py", line 373, in extract_hdfc_transactions
+    raise ValueError("No transactions found in this PDF. The file may be unsupported or not a valid HDFC statement.")
+ValueError: No transactions found in this PDF. The file may be unsupported or not a valid HDFC statement.
+2026-06-13 10:41:19,578 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
+2026-06-13 10:42:00,068 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
+2026-06-13 10:42:06,340 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
+2026-06-13 10:42:07,974 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
+2026-06-13 10:42:09,946 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
+2026-06-13 10:42:47,652 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
+2026-06-13 10:57:35,363 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
+2026-06-13 10:57:53,787 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
+2026-06-13 10:58:07,580 | ERROR | Processing failed: float() argument must be a string or a real number, not 'NAType'
