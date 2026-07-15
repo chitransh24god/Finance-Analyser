@@ -1,43 +1,57 @@
-/* Custom corporate branding stylesheets */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
 :root {
-    --primary: #2563EB;
-    --primary-hover: #1D4ED8;
-    --bg-main: #FFFFFF;
-    --bg-card: #F8F9FC;
-    --border-color: #E5E7EB;
-    --text-primary: #111827;
-    --text-secondary: #6B7280;
+    --primary: #4F46E5; /* Indigo-600 */
+    --primary-hover: #4338CA;
+    --primary-light: #EEF2FF;
+    --bg-main: #F8FAFC;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --border-color: rgba(226, 232, 240, 0.8);
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
 }
 
 body {
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     overflow: hidden;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(238, 242, 255, 0.6) 0, transparent 50%),
+        radial-gradient(at 50% 0%, rgba(243, 244, 246, 0.4) 0, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(224, 231, 255, 0.5) 0, transparent 50%);
 }
 
 /* Sidebar navigation item overrides */
 .nav-item {
     color: var(--text-secondary);
     background-color: transparent;
+    border-radius: 12px;
+    padding: 12px 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
 }
 
 .nav-item:hover {
     color: var(--text-primary);
-    background-color: #F1F5F9;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(226, 232, 240, 0.8);
+    transform: translateX(4px);
 }
 
 .nav-item.active {
     color: var(--primary);
-    background-color: #EFF6FF;
-    border-left: 4px solid var(--primary);
-    border-radius: 0 8px 8px 0;
+    background-color: rgba(79, 70, 229, 0.08);
+    border-color: rgba(79, 70, 229, 0.15);
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.05);
 }
 
 /* Tab indicator underlines */
 .subtab-item {
     color: var(--text-secondary);
     border-color: transparent;
+    transition: all 0.3s ease;
 }
 
 .subtab-item:hover {
@@ -48,6 +62,7 @@ body {
 .subtab-item.active {
     color: var(--primary);
     border-color: var(--primary);
+    font-weight: 700;
 }
 
 /* Custom Styled Scrollbar */
@@ -70,69 +85,104 @@ body {
 }
 
 /* Corporate Cards */
-.kpi-card {
-    background-color: var(--bg-card);
+.kpi-card, .premium-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 20px;
-    transition: all 0.2s ease-in-out;
+    border-radius: 20px;
+    padding: 24px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.01);
 }
 
-.kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    border-color: #CBD5E1;
+.kpi-card:hover, .premium-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.02);
+    border-color: rgba(79, 70, 229, 0.2);
 }
 
 /* Form controls styling */
 input, select, textarea {
+    font-family: 'Outfit', sans-serif;
     font-size: 0.875rem;
-    transition: all 0.15s ease-in-out;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px !important;
 }
 
 input:focus, select:focus, textarea:focus {
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15) !important;
     border-color: var(--primary) !important;
 }
 
 /* Table styling */
+#transactions-table tbody tr, #abb-months-table tbody tr {
+    transition: all 0.2s ease;
+}
+
 #transactions-table tbody tr:hover, #abb-months-table tbody tr:hover {
-    background-color: #F8FAFC;
+    background-color: rgba(79, 70, 229, 0.03);
+    transform: scale(0.998);
 }
 
 /* Badge grades */
 .badge-grade-excellent {
-    background-color: #D1FAE5;
+    background-color: rgba(16, 185, 129, 0.12);
     color: #065F46;
+    font-weight: 700;
 }
 
 .badge-grade-good {
-    background-color: #DBEAFE;
+    background-color: rgba(59, 130, 246, 0.12);
     color: #1E40AF;
+    font-weight: 700;
 }
 
 .badge-grade-average {
-    background-color: #FEF3C7;
+    background-color: rgba(245, 158, 11, 0.12);
     color: #92400E;
+    font-weight: 700;
 }
 
 .badge-grade-risky {
-    background-color: #FEE2E2;
+    background-color: rgba(239, 68, 68, 0.12);
     color: #991B1B;
+    font-weight: 700;
 }
 
-/* Standard animation utility */
+/* Premium Animations */
+.slide-up {
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .fade-in {
-    animation: fadeIn 0.25s ease-out forwards;
+    animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
     from {
         opacity: 0;
-        transform: translateY(4px);
+        transform: translateY(16px);
     }
     to {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Glow buttons */
+.btn-glow {
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+    box-shadow: 0 6px 20px 0 rgba(79, 70, 229, 0.45);
+    transform: translateY(-1px);
 }

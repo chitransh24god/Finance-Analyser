@@ -6,35 +6,76 @@
     <title>MyBankLoan AI - Professional Loan Analyzer & Financial Suite</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Custom Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'blob-slow': 'blob 10s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(16px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        blob: {
+                            '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.08)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.95)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Inter) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-white text-gray-900 font-['Inter'] antialiased">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased overflow-hidden relative">
+
+    <!-- Ambient Background Blobs (Soft, premium light aesthetic) -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#F8FAFC]">
+        <div class="absolute -top-[30%] -left-[20%] w-[60%] h-[60%] rounded-full bg-blue-100/50 blur-[120px] animate-blob-slow"></div>
+        <div class="absolute -bottom-[30%] -right-[20%] w-[60%] h-[60%] rounded-full bg-indigo-100/40 blur-[120px] animate-blob-slow" style="animation-delay: 3s;"></div>
+        <div class="absolute top-[40%] left-[50%] -translate-x-1/2 w-[50%] h-[50%] rounded-full bg-purple-50/40 blur-[100px] animate-blob-slow" style="animation-delay: 5s;"></div>
+    </div>
 
     <!-- ========================================== -->
     <!-- LOGIN GATE -->
     <!-- ========================================== -->
-    <div id="login-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-50 px-4">
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 p-8 transform transition-all duration-300 hover:scale-[1.01]">
-            <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 text-3xl mb-4">
-                    <i class="fa-solid fa-credit-card"></i>
+    <div id="login-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100/60 backdrop-blur-xl px-4 animate-fade-in">
+        <div class="w-full max-w-md bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-200/50 p-8 transform transition-all duration-500 hover:scale-[1.01] hover:shadow-indigo-500/10 relative overflow-hidden animate-slide-up">
+            <!-- Glass gloss effect -->
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-2xl"></div>
+            
+            <div class="text-center mb-8 relative z-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 text-white text-3xl mb-4 shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-credit-card animate-pulse-slow"></i>
                 </div>
-                <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">MyBankLoan AI</h2>
-                <p class="text-sm text-gray-500 mt-2">Professional Loan Analyzer & Finance Suite</p>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">MyBankLoan AI</h2>
+                <p class="text-sm text-slate-500 mt-2">Professional Loan Analyzer & Finance Suite</p>
             </div>
             
-            <form id="login-form" class="space-y-6">
+            <form id="login-form" class="space-y-6 relative z-10">
                 <div>
-                    <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Application Password</label>
+                    <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Application Password</label>
                     <input type="password" id="password" required placeholder="Enter authorization key" 
-                        class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/70 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-medium">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                <button type="submit" class="w-full btn-glow text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
                     Authenticate & Enter
                 </button>
                 <div id="login-error" class="hidden text-center text-sm font-semibold text-red-500 mt-2">
@@ -47,10 +88,10 @@
     <!-- ========================================== -->
     <!-- MAIN WORKSPACE -->
     <!-- ========================================== -->
-    <div id="main-workspace" class="hidden flex h-screen overflow-hidden">
+    <div id="main-workspace" class="hidden flex h-screen overflow-hidden relative z-10 bg-transparent animate-fade-in">
         <!-- Sidebar -->
-        <aside class="w-64 bg-gray-50 border-r border-gray-200 flex flex-col flex-shrink-0">
-            <div class="p-6 border-b border-gray-200 flex items-center gap-3">
+        <aside class="w-64 bg-white/60 backdrop-blur-md border-r border-slate-200/60 flex flex-col flex-shrink-0">
+            <div class="p-6 border-b border-slate-200/60 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-200">
                     <i class="fa-solid fa-credit-card"></i>
                 </div>
@@ -94,13 +135,13 @@
         </aside>
 
         <!-- Main Content Area -->
-        <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/20 backdrop-blur-md">
             <!-- Top Header -->
-            <header class="h-16 border-b border-gray-200 flex items-center justify-between px-8 bg-white flex-shrink-0">
+            <header class="h-16 border-b border-slate-200/60 flex items-center justify-between px-8 bg-white/40 backdrop-blur-md flex-shrink-0">
                 <div class="flex items-center gap-4">
-                    <span id="page-title" class="text-lg font-bold text-gray-900">Financial Hub</span>
+                    <span id="page-title" class="text-lg font-bold text-slate-800">Financial Hub</span>
                 </div>
-                <div class="text-xs text-gray-400 font-semibold uppercase tracking-widest">
+                <div class="text-xs text-slate-400 font-bold uppercase tracking-widest">
                     Professional Loan Analyzer V3
                 </div>
             </header>
@@ -114,96 +155,96 @@
                 <section id="section-hub" class="space-y-6">
                     <div class="max-w-6xl mx-auto">
                         <div class="mb-8">
-                            <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Corporate Financial Suite</h2>
-                            <p class="text-sm text-gray-500 mt-1">Select from our suite of institutional-grade valuation and planning calculators.</p>
+                            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Corporate Financial Suite</h2>
+                            <p class="text-sm text-slate-500 mt-1">Select from our suite of institutional-grade valuation and planning calculators.</p>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Card 1: EMI Calculator -->
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                            <div class="premium-card group flex flex-col justify-between">
                                 <div>
-                                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl mb-4 group-hover:scale-105 transition-all">
+                                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
                                         <i class="fa-solid fa-calculator"></i>
                                     </div>
-                                    <h3 class="text-lg font-bold text-gray-900">EMI Calculator</h3>
-                                    <p class="text-sm text-gray-500 mt-2 leading-relaxed">Calculate monthly installments, total interest & full amortization schedule for any loan.</p>
+                                    <h3 class="text-lg font-bold text-slate-950">EMI Calculator</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Calculate monthly installments, total interest & full amortization schedule for any loan.</p>
                                 </div>
-                                <button onclick="openCalculator('emi')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                <button onclick="openCalculator('emi')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all">
                                     <span>Open EMI Calculator</span>
                                     <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </button>
                             </div>
 
                             <!-- Card 2: Bond Valuation -->
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                            <div class="premium-card group flex flex-col justify-between">
                                 <div>
-                                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:scale-105 transition-all">
+                                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
                                         <i class="fa-solid fa-file-invoice-dollar"></i>
                                     </div>
-                                    <h3 class="text-lg font-bold text-gray-900">Bond Valuation</h3>
-                                    <p class="text-sm text-gray-500 mt-2 leading-relaxed">Find the fair value of a bond using face value, coupon rate, market rate & tenure.</p>
+                                    <h3 class="text-lg font-bold text-slate-950">Bond Valuation</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Find the fair value of a bond using face value, coupon rate, market rate & tenure.</p>
                                 </div>
-                                <button onclick="openCalculator('bond')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                <button onclick="openCalculator('bond')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
                                     <span>Open Bond Valuation</span>
                                     <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </button>
                             </div>
 
                             <!-- Card 3: SIP Calculator -->
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                            <div class="premium-card group flex flex-col justify-between">
                                 <div>
-                                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:scale-105 transition-all">
+                                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
                                         <i class="fa-solid fa-chart-line"></i>
                                     </div>
-                                    <h3 class="text-lg font-bold text-gray-900">SIP Calculator</h3>
-                                    <p class="text-sm text-gray-500 mt-2 leading-relaxed">Estimate returns on your monthly SIP investments with compounding growth.</p>
+                                    <h3 class="text-lg font-bold text-slate-950">SIP Calculator</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Estimate returns on your monthly SIP investments with compounding growth.</p>
                                 </div>
-                                <button onclick="openCalculator('sip')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                <button onclick="openCalculator('sip')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
                                     <span>Open SIP Calculator</span>
                                     <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </button>
                             </div>
 
                             <!-- Card 4: FD Calculator -->
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                            <div class="premium-card group flex flex-col justify-between">
                                 <div>
-                                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-105 transition-all">
+                                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
                                         <i class="fa-solid fa-piggy-bank"></i>
                                     </div>
-                                    <h3 class="text-lg font-bold text-gray-900">FD Calculator</h3>
-                                    <p class="text-sm text-gray-500 mt-2 leading-relaxed">Calculate maturity amount and interest earned on fixed deposits compounding quarterly.</p>
+                                    <h3 class="text-lg font-bold text-slate-950">FD Calculator</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Calculate maturity amount and interest earned on fixed deposits compounding quarterly.</p>
                                 </div>
-                                <button onclick="openCalculator('fd')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                <button onclick="openCalculator('fd')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
                                     <span>Open FD Calculator</span>
                                     <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </button>
                             </div>
 
                             <!-- Card 5: NPV / IRR -->
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                            <div class="premium-card group flex flex-col justify-between">
                                 <div>
-                                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-105 transition-all">
+                                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
                                         <i class="fa-solid fa-scale-balanced"></i>
                                     </div>
-                                    <h3 class="text-lg font-bold text-gray-900">NPV / IRR</h3>
-                                    <p class="text-sm text-gray-500 mt-2 leading-relaxed">Evaluate investment viability with Net Present Value and Internal Rate of Return.</p>
+                                    <h3 class="text-lg font-bold text-slate-950">NPV / IRR</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Evaluate investment viability with Net Present Value and Internal Rate of Return.</p>
                                 </div>
-                                <button onclick="openCalculator('npv')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                <button onclick="openCalculator('npv')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
                                     <span>Open NPV / IRR</span>
                                     <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </button>
                             </div>
 
                             <!-- Card 6: GST Calculator -->
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                            <div class="premium-card group flex flex-col justify-between">
                                 <div>
-                                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mb-4 group-hover:scale-105 transition-all">
+                                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
                                         <i class="fa-solid fa-percent"></i>
                                     </div>
-                                    <h3 class="text-lg font-bold text-gray-900">GST Calculator</h3>
-                                    <p class="text-sm text-gray-500 mt-2 leading-relaxed">Quickly compute GST inclusive or exclusive amounts across standard tax slabs.</p>
+                                    <h3 class="text-lg font-bold text-slate-950">GST Calculator</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Quickly compute GST inclusive or exclusive amounts across standard tax slabs.</p>
                                 </div>
-                                <button onclick="openCalculator('gst')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                <button onclick="openCalculator('gst')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
                                     <span>Open GST Calculator</span>
                                     <i class="fa-solid fa-arrow-right text-xs"></i>
                                 </button>
@@ -243,21 +284,21 @@
                     </div>
 
                     <!-- PDF Upload Container -->
-                    <div class="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:border-blue-500 transition-all relative">
+                    <div class="bg-white/80 backdrop-blur-md border-2 border-dashed border-slate-300 rounded-3xl p-10 text-center hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-300 relative group animate-slide-up cursor-pointer">
                         <input type="file" id="statement-upload" accept="application/pdf" class="absolute inset-0 opacity-0 cursor-pointer">
-                        <div class="flex flex-col items-center justify-center">
-                            <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl mb-4">
-                                <i class="fa-solid fa-file-pdf"></i>
+                        <div class="flex flex-col items-center justify-center pointer-events-none">
+                            <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
                             </div>
-                            <h3 class="font-bold text-gray-900 text-lg">Upload Bank Statement PDF</h3>
-                            <p class="text-sm text-gray-500 mt-1">Drag and drop your file here, or click to browse</p>
-                            <p class="text-xs text-gray-400 mt-3 font-semibold uppercase tracking-wider bg-gray-50 px-3 py-1 rounded">Supported Banks: HDFC, ICICI, SBI, Axis, IDFC, Yes, Canara, Kalupur</p>
+                            <h3 class="font-extrabold text-slate-850 text-lg">Upload Bank Statement PDF</h3>
+                            <p class="text-sm text-slate-500 mt-1">Drag and drop your file here, or click to browse</p>
+                            <p class="text-xs text-slate-400 mt-3 font-semibold uppercase tracking-wider bg-slate-100/80 px-3 py-1.5 rounded-lg">Supported Banks: HDFC, ICICI, SBI, Axis, IDFC, Yes, Canara, Kalupur</p>
                         </div>
                     </div>
 
                     <!-- Password Dialog Backdrop (Streamlit Password Protected Files) -->
-                    <div id="pdf-password-modal" class="hidden fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center">
-                        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm border border-gray-100">
+                    <div id="pdf-password-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center">
+                        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm border border-slate-100">
                             <h3 class="text-lg font-bold text-gray-900 mb-2">Statement Password Required</h3>
                             <p class="text-sm text-gray-500 mb-4">This bank statement is encrypted. Please enter the decryption password.</p>
                             <input type="password" id="pdf-password-input" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="Enter PDF password">
@@ -279,21 +320,21 @@
                     <div id="analyzer-results" class="hidden space-y-8">
                         <!-- Metadata Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-5">
-                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Customer Name</span>
-                                <span id="meta-name" class="text-lg font-extrabold text-gray-900 block mt-2">MR ASHISH DOKWAL</span>
+                            <div class="kpi-card p-5">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Customer Name</span>
+                                <span id="meta-name" class="text-lg font-extrabold text-slate-900 block mt-2">MR ASHISH DOKWAL</span>
                             </div>
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-5">
-                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Account Number</span>
-                                <span id="meta-account" class="text-lg font-extrabold text-gray-900 block mt-2">50100656476928</span>
+                            <div class="kpi-card p-5">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Account Number</span>
+                                <span id="meta-account" class="text-lg font-extrabold text-slate-900 block mt-2">50100656476928</span>
                             </div>
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-5">
-                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Bank Name</span>
-                                <span id="meta-bank" class="text-lg font-extrabold text-blue-600 block mt-2">HDFC Bank</span>
+                            <div class="kpi-card p-5">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Bank Name</span>
+                                <span id="meta-bank" class="text-lg font-extrabold text-indigo-600 block mt-2">HDFC Bank</span>
                             </div>
-                            <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-5">
-                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Statement Period</span>
-                                <span id="meta-period" class="text-sm font-bold text-gray-900 block mt-2">2025-09-01 to 2026-05-31</span>
+                            <div class="kpi-card p-5">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Statement Period</span>
+                                <span id="meta-period" class="text-sm font-bold text-slate-900 block mt-2">2025-09-01 to 2026-05-31</span>
                             </div>
                         </div>
 
@@ -314,51 +355,51 @@
                             <div>
                                 <h3 class="text-base font-extrabold text-gray-900 mb-4 uppercase tracking-wider">Average Daily Balance (ABB) Summary</h3>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6">
-                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Latest Month ABB (1M)</span>
-                                        <span id="abb-1m" class="text-3xl font-extrabold text-blue-600 block mt-2">₹0.00</span>
+                                    <div class="kpi-card p-6">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Latest Month ABB (1M)</span>
+                                        <span id="abb-1m" class="text-3xl font-extrabold text-indigo-600 block mt-2">₹0.00</span>
                                     </div>
-                                    <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6">
-                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">3 Months Rolling ABB (3M)</span>
-                                        <span id="abb-3m" class="text-3xl font-extrabold text-blue-600 block mt-2">₹0.00</span>
+                                    <div class="kpi-card p-6">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">3 Months Rolling ABB (3M)</span>
+                                        <span id="abb-3m" class="text-3xl font-extrabold text-indigo-600 block mt-2">₹0.00</span>
                                     </div>
-                                    <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6">
-                                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">6 Months Rolling ABB (6M)</span>
-                                        <span id="abb-6m" class="text-3xl font-extrabold text-blue-600 block mt-2">₹0.00</span>
+                                    <div class="kpi-card p-6">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">6 Months Rolling ABB (6M)</span>
+                                        <span id="abb-6m" class="text-3xl font-extrabold text-indigo-600 block mt-2">₹0.00</span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Flow Summary metrics -->
                             <div>
-                                <h3 class="text-base font-extrabold text-gray-900 mb-4 uppercase tracking-wider">Account Flow Summary</h3>
+                                <h3 class="text-base font-extrabold text-slate-800 mb-4 uppercase tracking-wider">Account Flow Summary</h3>
                                 <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                                        <span class="text-xs font-semibold text-gray-400 block">Total Credits Value</span>
-                                        <span id="flow-credits" class="text-lg font-extrabold text-gray-900 block mt-1">₹0.00</span>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Total Credits Value</span>
+                                        <span id="flow-credits" class="text-lg font-extrabold text-emerald-600 block mt-1">₹0.00</span>
                                     </div>
-                                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                                        <span class="text-xs font-semibold text-gray-400 block">Total Debits Value</span>
-                                        <span id="flow-debits" class="text-lg font-extrabold text-gray-900 block mt-1">₹0.00</span>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Total Debits Value</span>
+                                        <span id="flow-debits" class="text-lg font-extrabold text-rose-600 block mt-1">₹0.00</span>
                                     </div>
-                                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                                        <span class="text-xs font-semibold text-gray-400 block">Highest Balance</span>
-                                        <span id="flow-highest" class="text-lg font-extrabold text-gray-900 block mt-1">₹0.00</span>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Highest Balance</span>
+                                        <span id="flow-highest" class="text-lg font-extrabold text-slate-800 block mt-1">₹0.00</span>
                                     </div>
-                                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                                        <span class="text-xs font-semibold text-gray-400 block">Lowest Balance</span>
-                                        <span id="flow-lowest" class="text-lg font-extrabold text-gray-900 block mt-1">₹0.00</span>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Lowest Balance</span>
+                                        <span id="flow-lowest" class="text-lg font-extrabold text-slate-800 block mt-1">₹0.00</span>
                                     </div>
-                                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                                        <span class="text-xs font-semibold text-gray-400 block">Latest Balance</span>
-                                        <span id="flow-latest" class="text-lg font-extrabold text-gray-900 block mt-1">₹0.00</span>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Latest Balance</span>
+                                        <span id="flow-latest" class="text-lg font-extrabold text-slate-800 block mt-1">₹0.00</span>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Visual Balance Trend Curve -->
-                            <div class="bg-white border border-gray-200 rounded-2xl p-6">
-                                <h3 class="text-base font-extrabold text-gray-900 mb-4">Daily Balance Trend Chart</h3>
+                            <div class="premium-card p-6">
+                                <h3 class="text-base font-extrabold text-slate-900 mb-4">Daily Balance Trend Chart</h3>
                                 <div class="h-80 w-full relative">
                                     <canvas id="ledger-trend-chart"></canvas>
                                 </div>
