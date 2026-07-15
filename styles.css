@@ -1,0 +1,138 @@
+/* Custom corporate branding stylesheets */
+:root {
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --bg-main: #FFFFFF;
+    --bg-card: #F8F9FC;
+    --border-color: #E5E7EB;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+/* Sidebar navigation item overrides */
+.nav-item {
+    color: var(--text-secondary);
+    background-color: transparent;
+}
+
+.nav-item:hover {
+    color: var(--text-primary);
+    background-color: #F1F5F9;
+}
+
+.nav-item.active {
+    color: var(--primary);
+    background-color: #EFF6FF;
+    border-left: 4px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+}
+
+/* Tab indicator underlines */
+.subtab-item {
+    color: var(--text-secondary);
+    border-color: transparent;
+}
+
+.subtab-item:hover {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.subtab-item.active {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Custom Styled Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* Corporate Cards */
+.kpi-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s ease-in-out;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    border-color: #CBD5E1;
+}
+
+/* Form controls styling */
+input, select, textarea {
+    font-size: 0.875rem;
+    transition: all 0.15s ease-in-out;
+}
+
+input:focus, select:focus, textarea:focus {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    border-color: var(--primary) !important;
+}
+
+/* Table styling */
+#transactions-table tbody tr:hover, #abb-months-table tbody tr:hover {
+    background-color: #F8FAFC;
+}
+
+/* Badge grades */
+.badge-grade-excellent {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-grade-good {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-grade-average {
+    background-color: #FEF3C7;
+    color: #92400E;
+}
+
+.badge-grade-risky {
+    background-color: #FEE2E2;
+    color: #991B1B;
+}
+
+/* Standard animation utility */
+.fade-in {
+    animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
