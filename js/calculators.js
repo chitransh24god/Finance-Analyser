@@ -344,8 +344,7 @@ function renderCalculatorWorkspace(calcId) {
             </div>
         `;
         calculateNpvIrr();
-
-
+    }
 }
 
 // Helper: Format Currency
