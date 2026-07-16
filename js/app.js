@@ -115,8 +115,7 @@ function getCalculatorName(id) {
         bond: "Bond Valuation",
         sip: "SIP Calculator",
         fd: "Fixed Deposit Calculator",
-        npv: "NPV & IRR Valuer",
-        gst: "GST Calculator"
+        npv: "NPV & IRR Valuer"
     };
     return names[id] || "Calculator";
 }

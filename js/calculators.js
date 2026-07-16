@@ -345,73 +345,7 @@ function renderCalculatorWorkspace(calcId) {
         `;
         calculateNpvIrr();
 
-    } else if (calcId === "gst") {
-        ws.innerHTML = `
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 fade-in">
-                <div class="bg-[#F8F9FC] border border-gray-200 rounded-2xl p-6 lg:col-span-1 space-y-6">
-                    <h3 class="font-extrabold text-gray-900 text-lg border-b pb-2">Tax Settings</h3>
-                    
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Original Base Value (₹)</label>
-                        <input type="number" id="gst-amount" value="10000" min="1" step="100" class="w-full px-4 py-2 border rounded-lg focus:outline-none">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">GST Rate Slab</label>
-                        <select id="gst-rate" class="w-full px-4 py-2 border rounded-lg focus:outline-none bg-white">
-                            <option value="5">5% (Essential Goods)</option>
-                            <option value="12">12% (Standard)</option>
-                            <option value="18" selected>18% (Standard Services)</option>
-                            <option value="28">28% (Luxury Goods)</option>
-                        </select>
-                    </div>
 
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">GST Context Type</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
-                                <input type="radio" name="gst-type" value="add" checked class="w-4 h-4 text-blue-600 focus:ring-blue-500">
-                                <span>Add GST (Exclusive)</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 cursor-pointer">
-                                <input type="radio" name="gst-type" value="remove" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
-                                <span>Remove GST (Inclusive)</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <button onclick="calculateGst()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition-all">
-                        Compute GST Tax
-                    </button>
-                </div>
-
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white border border-gray-200 rounded-xl p-5 text-center">
-                            <span class="text-xs font-semibold text-gray-400 block">Total GST Amount</span>
-                            <span id="gst-val-tax" class="text-2xl font-extrabold text-blue-600 block mt-2">₹0.00</span>
-                        </div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-5 text-center">
-                            <span class="text-xs font-semibold text-gray-400 block">Gross / Net Final Value</span>
-                            <span id="gst-val-total" class="text-2xl font-extrabold text-gray-900 block mt-2">₹0.00</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white border border-gray-200 rounded-xl p-5 text-center">
-                            <span class="text-xs font-semibold text-gray-400 block">CGST Share (Central)</span>
-                            <span id="gst-val-cgst" class="text-xl font-bold text-gray-800 block mt-1">₹0.00</span>
-                        </div>
-                        <div class="bg-white border border-gray-200 rounded-xl p-5 text-center">
-                            <span class="text-xs font-semibold text-gray-400 block">SGST Share (State)</span>
-                            <span id="gst-val-sgst" class="text-xl font-bold text-gray-800 block mt-1">₹0.00</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        calculateGst();
-    }
 }
 
 // Helper: Format Currency
@@ -820,40 +754,4 @@ function calculateNpvIrr() {
     });
 }
 
-// ==========================================
-// 6. GST CALCULATOR MATH
-// ==========================================
-function calculateGst() {
-    const amt = parseFloat(document.getElementById("gst-amount").value) || 0.0;
-    const rate = parseFloat(document.getElementById("gst-rate").value) || 0.0;
-    
-    // Check radio buttons values
-    const options = document.getElementsByName("gst-type");
-    let isAdd = true;
-    for (const opt of options) {
-        if (opt.checked && opt.value === "remove") {
-            isAdd = false;
-        }
-    }
 
-    let gstTax = 0.0;
-    let finalAmount = 0.0;
-
-    if (isAdd) {
-        // Add GST to Exclusive Amount
-        gstTax = amt * (rate / 100);
-        finalAmount = amt + gstTax;
-    } else {
-        // Remove GST from Inclusive Amount
-        gstTax = amt - (amt * (100 / (100 + rate)));
-        finalAmount = amt - gstTax;
-    }
-
-    const cgst = gstTax / 2;
-    const sgst = gstTax / 2;
-
-    document.getElementById("gst-val-tax").innerText = formatCurrencyJS(gstTax);
-    document.getElementById("gst-val-total").innerText = formatCurrencyJS(finalAmount);
-    document.getElementById("gst-val-cgst").innerText = formatCurrencyJS(cgst);
-    document.getElementById("gst-val-sgst").innerText = formatCurrencyJS(sgst);
-}
