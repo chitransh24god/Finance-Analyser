@@ -46,10 +46,10 @@
 <body class="bg-slate-50 text-slate-900 font-sans antialiased overflow-hidden relative">
 
     <!-- Ambient Background Blobs (Soft, premium light aesthetic) -->
-    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#F8FAFC]">
-        <div class="absolute -top-[30%] -left-[20%] w-[60%] h-[60%] rounded-full bg-blue-100/50 blur-[120px] animate-blob-slow"></div>
-        <div class="absolute -bottom-[30%] -right-[20%] w-[60%] h-[60%] rounded-full bg-indigo-100/40 blur-[120px] animate-blob-slow" style="animation-delay: 3s;"></div>
-        <div class="absolute top-[40%] left-[50%] -translate-x-1/2 w-[50%] h-[50%] rounded-full bg-purple-50/40 blur-[100px] animate-blob-slow" style="animation-delay: 5s;"></div>
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#F4F7FC]">
+        <div class="absolute -top-[30%] -left-[20%] w-[60%] h-[60%] rounded-full bg-blue-300/45 blur-[120px] animate-blob-slow"></div>
+        <div class="absolute -bottom-[30%] -right-[20%] w-[60%] h-[60%] rounded-full bg-emerald-300/35 blur-[120px] animate-blob-slow" style="animation-delay: 3s;"></div>
+        <div class="absolute top-[40%] left-[50%] -translate-x-1/2 w-[50%] h-[50%] rounded-full bg-indigo-300/40 blur-[100px] animate-blob-slow" style="animation-delay: 5s;"></div>
     </div>
 
     <!-- ========================================== -->
@@ -58,14 +58,14 @@
     <div id="login-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100/60 backdrop-blur-xl px-4 animate-fade-in">
         <div class="w-full max-w-md bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-200/50 p-8 transform transition-all duration-500 hover:scale-[1.01] hover:shadow-indigo-500/10 relative overflow-hidden animate-slide-up">
             <!-- Glass gloss effect -->
-            <div class="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full blur-2xl"></div>
-            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-full blur-2xl"></div>
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-emerald-500/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-full blur-2xl"></div>
             
             <div class="text-center mb-8 relative z-10">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 text-white text-3xl mb-4 shadow-lg shadow-indigo-500/20">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-emerald-500 text-white text-3xl mb-4 shadow-lg shadow-blue-500/20">
                     <i class="fa-solid fa-credit-card animate-pulse-slow"></i>
                 </div>
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight">MyBankLoan AI</h2>
+                <h2 class="text-2xl font-black tracking-tight finance-gradient-text">MyBankLoan AI</h2>
                 <p class="text-sm text-slate-500 mt-2">Professional Loan Analyzer & Finance Suite</p>
             </div>
             
@@ -92,11 +92,11 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-white/60 backdrop-blur-md border-r border-slate-200/60 flex flex-col flex-shrink-0">
             <div class="p-6 border-b border-slate-200/60 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-200">
-                    <i class="fa-solid fa-credit-card"></i>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 text-white flex items-center justify-center text-xl shadow-md shadow-blue-250">
+                    <i class="fa-solid fa-credit-card animate-pulse-slow"></i>
                 </div>
                 <div>
-                    <h1 class="font-extrabold text-gray-900 leading-none text-base">MyBankLoan AI</h1>
+                    <h1 class="font-black leading-none text-base finance-gradient-text">MyBankLoan AI</h1>
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 mt-1">
                         Active Hub
                     </span>
