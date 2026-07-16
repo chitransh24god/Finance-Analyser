@@ -137,3 +137,18 @@ ConnectionResetError: [WinError 10054] An existing connection was forcibly close
 2026-06-19 15:52:31,318 [INFO] Generating Excel reports...
 2026-06-19 15:52:31,881 [INFO] All Excel reports generated successfully.
 2026-06-19 15:52:31,882 [INFO] Successfully processed bank statement: IDFC_First bank.pdf
+2026-06-30 12:11:47,242 [INFO] Successful user authentication.
+2026-06-30 12:11:53,989 [INFO] New file uploaded: Hdfc format.PDF
+2026-06-30 12:11:54,082 [INFO] Detected bank via filename: HDFC Bank
+2026-06-30 12:11:54,084 [INFO] Parsing HDFC statement: temp_uploaded_statement.pdf
+2026-06-30 12:11:54,851 [INFO] Detected HDFC Corporate/Current Account layout (table-based parsing)
+2026-06-30 12:12:24,778 [INFO] HDFC extraction complete. Rows: 703
+2026-06-30 12:12:24,875 [INFO] Calculating ABB statistics...
+2026-06-30 12:12:25,002 [INFO] ABB Date Range: 2026-02-01 to 2026-02-27
+2026-06-30 12:12:25,093 [INFO] ABB calculation complete. Summary: {'1M': np.float64(144014448.9), '3M': 'Data Unavailable', '6M': 'Data Unavailable'}
+2026-06-30 12:12:25,094 [INFO] Analyzing credit risk profile...
+2026-06-30 12:12:25,164 [INFO] Starting statement validation...
+2026-06-30 12:12:26,405 [INFO] Validation successful. Covered: 26 days, Invalid dates: 0.0%.
+2026-06-30 12:12:26,406 [INFO] Generating Excel reports...
+2026-06-30 12:12:27,548 [INFO] All Excel reports generated successfully.
+2026-06-30 12:12:27,549 [INFO] Successfully processed bank statement: Hdfc format.PDF
