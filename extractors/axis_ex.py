@@ -50,11 +50,14 @@ class AxisExtractor(BaseExtractor):
 
     def parse(self, pdf_path: str, password: str = None) -> tuple[dict, list[dict]]:
         log_info(f"Parsing Axis statement: {os.path.basename(pdf_path)}")
-        text_p1 = self.extract_text_pypdf(pdf_path, password)
+        text_p1 = self.extract_text_pdfplumber(pdf_path, password)
         self.extract_metadata(text_p1)
         
         transactions = []
         current_tx = None
+        
+        active_format = None
+        col_indices = {}
         
         with pdfplumber.open(pdf_path, password=password) as pdf:
             for page_idx, page in enumerate(pdf.pages):
@@ -63,17 +66,46 @@ class AxisExtractor(BaseExtractor):
                     continue
                 
                 for table in tables:
+                    if not table or not table[0]:
+                        continue
+                        
                     headers = [str(col).lower().replace("\n", "").replace(" ", "").replace("/", "").replace(".", "") for col in table[0] if col is not None]
+                    start_row_idx = 1
                     
                     # 1. Format 1: Tran Date, Particulars, Debit, Credit, Balance
                     if "trandate" in headers and "balance" in headers:
-                        date_idx = headers.index("trandate")
-                        desc_idx = headers.index("particulars") if "particulars" in headers else 2
-                        deb_idx = headers.index("debit") if "debit" in headers else 3
-                        cred_idx = headers.index("credit") if "credit" in headers else 4
-                        bal_idx = headers.index("balance")
+                        active_format = "format1"
+                        col_indices = {
+                            "date": headers.index("trandate"),
+                            "desc": headers.index("particulars") if "particulars" in headers else 2,
+                            "deb": headers.index("debit") if "debit" in headers else 3,
+                            "cred": headers.index("credit") if "credit" in headers else 4,
+                            "bal": headers.index("balance")
+                        }
+                    # 2. Format 2: S.NO, Transaction Date (dd/mm/yyyy), Particulars, Amount(INR), Debit/Credit, Balance(INR)
+                    elif "transactiondate(ddmmyyyy)" in headers and "balance(inr)" in headers:
+                        active_format = "format2"
+                        col_indices = {
+                            "date": headers.index("transactiondate(ddmmyyyy)"),
+                            "desc": headers.index("particulars"),
+                            "amt": headers.index("amount(inr)"),
+                            "dc": headers.index("debitcredit"),
+                            "bal": headers.index("balance(inr)")
+                        }
+                    elif active_format and len(table[0]) >= 5:
+                        # Continuation table on subsequent page without header row
+                        start_row_idx = 0
+                    else:
+                        continue
                         
-                        for row in table[1:]:
+                    if active_format == "format1":
+                        date_idx = col_indices["date"]
+                        desc_idx = col_indices["desc"]
+                        deb_idx = col_indices["deb"]
+                        cred_idx = col_indices["cred"]
+                        bal_idx = col_indices["bal"]
+                        
+                        for row in table[start_row_idx:]:
                             if not row or len(row) <= max(date_idx, bal_idx):
                                 continue
                             
@@ -83,6 +115,12 @@ class AxisExtractor(BaseExtractor):
                             cred_str = str(row[cred_idx]).strip() if row[cred_idx] is not None else ""
                             bal_str = str(row[bal_idx]).strip() if row[bal_idx] is not None else ""
                             
+                            # Filter out non-transaction summary rows
+                            if any(k in desc_str.lower() for k in ["opening balance", "transaction total", "closing balance", "charge breakup"]):
+                                continue
+                            if any(k in date_str.lower() for k in ["sr. no.", "period", "recover"]):
+                                continue
+                                
                             parsed_dt = self.parse_date(date_str)
                             if parsed_dt:
                                 if current_tx:
@@ -95,22 +133,18 @@ class AxisExtractor(BaseExtractor):
                                     "balance": bal_str
                                 }
                             else:
-                                # Skip opening balance line if it is not a transaction
-                                if "opening balance" in desc_str.lower():
-                                    continue
                                 if current_tx and desc_str:
                                     current_tx["narration"] += " " + desc_str.replace("\n", " ").strip()
                                     current_tx["narration"] = re.sub(r"\s+", " ", current_tx["narration"]).strip()
                                     
-                    # 2. Format 2: S.NO, Transaction Date (dd/mm/yyyy), Particulars, Amount(INR), Debit/Credit, Balance(INR)
-                    elif "transactiondate(ddmmyyyy)" in headers and "balance(inr)" in headers:
-                        date_idx = headers.index("transactiondate(ddmmyyyy)")
-                        desc_idx = headers.index("particulars")
-                        amt_idx = headers.index("amount(inr)")
-                        dc_idx = headers.index("debitcredit")
-                        bal_idx = headers.index("balance(inr)")
+                    elif active_format == "format2":
+                        date_idx = col_indices["date"]
+                        desc_idx = col_indices["desc"]
+                        amt_idx = col_indices["amt"]
+                        dc_idx = col_indices["dc"]
+                        bal_idx = col_indices["bal"]
                         
-                        for row in table[1:]:
+                        for row in table[start_row_idx:]:
                             if not row or len(row) <= max(date_idx, bal_idx):
                                 continue
                             
@@ -125,10 +159,8 @@ class AxisExtractor(BaseExtractor):
                                 if current_tx:
                                     transactions.append(current_tx)
                                 
-                                # Determine debit/credit
                                 is_dr = "dr" in dc_str.lower()
                                 is_cr = "cr" in dc_str.lower()
-                                
                                 deb_val = amt_str if is_dr else ""
                                 cred_val = amt_str if is_cr else ""
                                 
