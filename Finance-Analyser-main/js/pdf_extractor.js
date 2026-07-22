@@ -184,38 +184,94 @@ function extractMetadata(text, bankName) {
         bank_name: bankName
     };
 
-    // Account Number Regex
-    let accMatch = text.match(/(?:Account\s*No|Account\s*Number|A\/C\s*No|A\/c\s*Number)[:\s]*([0-9]{8,20})/i);
+    // 1. Account Number
+    let accMatch = text.match(/(?:Account\s*No|Account\s*Number|A\/C\s*No|A\/c\s*Number|Account No\s*:|Account Number\s*:)[:\s]*([0-9A-Za-z]{8,20})/i);
+    if (!accMatch) {
+        accMatch = text.match(/Statement of (?:Axis )?Account No\s*:?\s*([0-9]{8,20})/i);
+    }
     if (accMatch) meta.account_number = accMatch[1].trim();
 
-    // Customer Name Regex (standard corporate titles)
-    let nameMatch = text.match(/(?:MR|MRS|MS|M\/S)\s+([A-Z\s]{4,30})/);
-    if (nameMatch) {
-        meta.customer_name = nameMatch[0].trim();
-    } else {
-        // Look for lines preceding "ADDRESS"
-        const lines = text.split("\n");
-        for (let j = 0; j < lines.length; j++) {
-            if (lines[j].includes("ADDRESS")) {
-                if (j > 0 && lines[j-1].trim()) {
-                    meta.customer_name = lines[j-1].trim();
-                    break;
-                }
-            }
-        }
-    }
-
-    // Date range search: e.g. "From : 01/09/2025 To : 31/05/2026"
-    let periodMatch = text.match(/From\s*:\s*(\d{2}\/\d{2}\/\d{4})\s*To\s*:\s*(\d{2}\/\d{2}\/\d{4})/i);
+    // 2. Date Range
+    let periodMatch = text.match(/From\s*:\s*(\d{2}[-\/]\d{2}[-\/]\d{4})\s*To\s*:\s*(\d{2}[-\/]\d{2}[-\/]\d{4})/i);
     if (!periodMatch) {
         periodMatch = text.match(/Period\s*:\s*(\d{2}-[A-Za-z]{3}-\d{4})\s*to\s*(\d{2}-[A-Za-z]{3}-\d{4})/i);
     }
     if (!periodMatch) {
-        periodMatch = text.match(/From\s*(\d{2}\/\d{2}\/\d{4})\s*To\s*(\d{2}\/\d{2}\/\d{4})/i);
+        periodMatch = text.match(/Period\s*:\s*(\d{2}-\d{2}-\d{4})\s+(\d{2}-\d{2}-\d{4})/i);
+    }
+    if (!periodMatch) {
+        periodMatch = text.match(/Statement Period\s*:?\s*(\d{4}-\d{2}-\d{2})\s*to\s*(\d{4}-\d{2}-\d{2})/i);
+    }
+    if (!periodMatch) {
+        periodMatch = text.match(/From\s*(\d{2}[-\/]\d{2}[-\/]\d{4})\s*To\s*(\d{2}[-\/]\d{2}[-\/]\d{4})/i);
     }
     if (periodMatch) {
         meta.start_date = standardizeDate(periodMatch[1]);
         meta.end_date = standardizeDate(periodMatch[2]);
+    }
+
+    // 3. Customer Name
+    // Rule A: Explicit Name / Account Name / Customer Name labels
+    let nameMatch = text.match(/(?:Account\s*Name|Customer\s*Name|A\/c\s*Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\r?\n|Account|Branch|Statement|Phone|$)/i);
+    if (!nameMatch) {
+        nameMatch = text.match(/Statement of Transactions in (?:the Account of )?([A-Za-z0-9\s\.\,\&\-]+?)(?: for the period| from|$)/i);
+    }
+    if (!nameMatch) {
+        nameMatch = text.match(/(?:^|\n)(?!Branch\s*Name)Name\s*:?\s*([A-Za-z0-9\s\-\&]{4,40})(?:\s*Phone|\s*Product|\s*Branch|\n|$)/i);
+    }
+    if (!nameMatch) {
+        nameMatch = text.match(/(?:MR|MRS|MS|M\/S)\s+([A-Z\s]{4,30})/);
+    }
+
+    if (nameMatch) {
+        let cand = nameMatch[1] ? nameMatch[1].trim() : nameMatch[0].trim();
+        if (cand && cand.length >= 3 && !/transaction|statement|account|balance|opening|closing/i.test(cand)) {
+            meta.customer_name = cand;
+        }
+    }
+
+    // Rule B: Page 1 Header text before Customer ID / Joint Holder / Account Details
+    if (meta.customer_name === "Not Available") {
+        const page1Text = text.split("\n").slice(0, 20);
+        for (let j = 0; j < page1Text.length; j++) {
+            const line = page1Text[j].trim();
+            if (line.includes("Joint Holder")) {
+                const parts = line.split(/Joint\s*Holder/i);
+                if (parts[0].trim().length >= 3) {
+                    meta.customer_name = parts[0].trim();
+                    break;
+                } else if (j > 0 && page1Text[j-1].trim().length >= 3 && !/statement|report|account/i.test(page1Text[j-1])) {
+                    meta.customer_name = page1Text[j-1].trim();
+                    break;
+                }
+            }
+            if (/Customer ID|IFSC Code|MICR Code|Scheme|Nominee/i.test(line)) {
+                for (let k = 0; k < j; k++) {
+                    const cand = page1Text[k].trim();
+                    if (cand.length >= 3 && cand.length <= 50 && !/axis|bank|statement|account|flat|wing|road|thane|maharashtra|building|street/i.test(cand) && !/\d{5,}/.test(cand)) {
+                        meta.customer_name = cand;
+                        break;
+                    }
+                }
+                if (meta.customer_name !== "Not Available") break;
+            }
+        }
+    }
+
+    // Rule C: Line before "ADDRESS" ONLY if it's on page 1 header (< 50 chars, no transaction keywords/dates)
+    if (meta.customer_name === "Not Available") {
+        const headerLines = text.split("\n").slice(0, 25).map(l => l.trim()).filter(l => l.length > 0);
+        for (let j = 0; j < headerLines.length; j++) {
+            if (headerLines[j].includes("ADDRESS") && !headerLines[j].includes("BRANCH ADDRESS")) {
+                if (j > 0) {
+                    const cand = headerLines[j-1];
+                    if (cand.length >= 3 && cand.length <= 50 && !/\d{2}[-\/]\d{2}[-\/]\d{4}/.test(cand) && !/transaction|balance|opening|closing/i.test(cand)) {
+                        meta.customer_name = cand;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     return meta;
