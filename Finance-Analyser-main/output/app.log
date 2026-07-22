@@ -1,0 +1,154 @@
+2026-06-13 15:19:36,492 [INFO] Successful user authentication.
+2026-06-13 15:19:43,417 [INFO] New file uploaded: ICICI Bank.pdf
+2026-06-13 15:19:43,468 [INFO] Detected bank via filename: ICICI Bank
+2026-06-13 15:19:43,468 [INFO] Parsing ICICI statement: temp_uploaded_statement.pdf
+2026-06-13 15:20:14,856 [INFO] ICICI extraction complete. Rows: 12
+2026-06-13 15:20:14,863 [INFO] Calculating ABB statistics...
+2026-06-13 15:20:14,880 [INFO] ABB Date Range: 2025-01-01 to 2026-01-01
+2026-06-13 15:20:14,910 [INFO] ABB calculation complete. Summary: {'1M': np.float64(313543.96), '3M': np.float64(313543.96), '6M': np.float64(313543.96)}
+2026-06-13 15:20:14,911 [INFO] Analyzing credit risk profile...
+2026-06-13 15:20:14,937 [INFO] Starting statement validation...
+2026-06-13 15:20:14,958 [INFO] Validation successful. Covered: 4 days, Invalid dates: 0.0%.
+2026-06-13 15:20:14,959 [INFO] Generating Excel reports...
+2026-06-13 15:20:15,129 [INFO] All Excel reports generated successfully.
+2026-06-13 15:20:15,130 [INFO] Successfully processed bank statement: ICICI Bank.pdf
+2026-06-13 16:24:34,742 [INFO] Successful user authentication.
+2026-06-15 10:25:53,714 [INFO] Successful user authentication.
+2026-06-15 10:32:07,603 [INFO] New file uploaded: Axis Bank SAVING BANK.pdf
+2026-06-15 10:32:07,766 [INFO] Detected bank via filename: Axis Bank
+2026-06-15 10:32:07,768 [INFO] Parsing Axis statement: temp_uploaded_statement.pdf
+2026-06-15 10:32:11,509 [INFO] Axis extraction complete. Rows: 23
+2026-06-15 10:32:11,577 [INFO] Calculating ABB statistics...
+2026-06-15 10:32:11,686 [INFO] ABB Date Range: 2024-07-10 to 2025-07-08
+2026-06-15 10:32:11,768 [INFO] ABB calculation complete. Summary: {'1M': np.float64(1516267.49), '3M': np.float64(1516267.49), '6M': np.float64(1516267.49)}
+2026-06-15 10:32:11,770 [INFO] Analyzing credit risk profile...
+2026-06-15 10:32:11,845 [INFO] Starting statement validation...
+2026-06-15 10:32:11,900 [INFO] Validation successful. Covered: 139 days, Invalid dates: 0.0%.
+2026-06-15 10:32:11,902 [INFO] Generating Excel reports...
+2026-06-15 10:32:12,221 [INFO] All Excel reports generated successfully.
+2026-06-15 10:32:12,222 [INFO] Successfully processed bank statement: Axis Bank SAVING BANK.pdf
+2026-06-15 14:09:26,582 [INFO] Successful user authentication.
+2026-06-15 14:09:35,055 [INFO] New file uploaded: Hdfc format.PDF
+2026-06-15 14:09:35,147 [INFO] Detected bank via filename: HDFC Bank
+2026-06-15 14:09:35,149 [INFO] Parsing HDFC statement: temp_uploaded_statement.pdf
+2026-06-15 14:09:35,845 [INFO] Detected HDFC Corporate/Current Account layout (table-based parsing)
+2026-06-15 14:10:04,928 [INFO] HDFC extraction complete. Rows: 703
+2026-06-15 14:10:05,036 [INFO] Calculating ABB statistics...
+2026-06-15 14:10:05,252 [INFO] ABB Date Range: 2026-02-01 to 2026-02-27
+2026-06-15 14:10:05,347 [INFO] ABB calculation complete. Summary: {'1M': np.float64(144014448.9), '3M': 'Data Unavailable', '6M': 'Data Unavailable'}
+2026-06-15 14:10:05,347 [INFO] Analyzing credit risk profile...
+2026-06-15 14:10:05,414 [INFO] Starting statement validation...
+2026-06-15 14:10:06,323 [INFO] Validation successful. Covered: 26 days, Invalid dates: 0.0%.
+2026-06-15 14:10:06,324 [INFO] Generating Excel reports...
+2026-06-15 14:10:07,150 [INFO] All Excel reports generated successfully.
+2026-06-15 14:10:07,151 [INFO] Successfully processed bank statement: Hdfc format.PDF
+2026-06-17 11:25:38,703 [INFO] Successful user authentication.
+2026-06-17 11:25:52,164 [INFO] New file uploaded: Account Statement.pdf
+2026-06-17 11:26:59,927 [INFO] Detected bank via signature: HDFC Bank
+2026-06-17 11:26:59,927 [INFO] Parsing HDFC statement: temp_uploaded_statement.pdf
+2026-06-17 11:27:00,402 [INFO] Detected HDFC Savings Account layout (coordinate-based parsing required)
+2026-06-17 11:27:04,452 [INFO] Detected bank via signature: HDFC Bank
+2026-06-17 11:27:04,482 [INFO] Parsing HDFC statement: temp_uploaded_statement.pdf
+2026-06-17 11:27:07,518 [INFO] Detected HDFC Savings Account layout (coordinate-based parsing required)
+2026-06-17 11:27:32,852 [INFO] HDFC extraction complete. Rows: 585
+2026-06-17 11:27:33,263 [INFO] Calculating ABB statistics...
+2026-06-17 11:27:34,248 [INFO] ABB Date Range: 2025-09-01 to 2026-05-31
+2026-06-17 11:27:43,919 [INFO] HDFC extraction complete. Rows: 585
+2026-06-17 11:27:43,928 [INFO] Calculating ABB statistics...
+2026-06-17 11:27:43,969 [INFO] ABB Date Range: 2025-09-01 to 2026-05-31
+2026-06-17 11:27:44,366 [INFO] ABB calculation complete. Summary: {'1M': np.float64(42302.9), '3M': np.float64(44825.65), '6M': np.float64(49531.26)}
+2026-06-17 11:27:44,369 [INFO] Analyzing credit risk profile...
+2026-06-17 11:27:44,522 [INFO] Starting statement validation...
+2026-06-17 11:27:45,140 [INFO] Validation successful. Covered: 271 days, Invalid dates: 0.0%.
+2026-06-17 11:27:45,145 [INFO] Generating Excel reports...
+2026-06-17 11:27:45,918 [INFO] ABB calculation complete. Summary: {'1M': np.float64(42302.9), '3M': np.float64(44825.65), '6M': np.float64(49531.26)}
+2026-06-17 11:27:45,920 [INFO] Analyzing credit risk profile...
+2026-06-17 11:27:45,973 [INFO] Starting statement validation...
+2026-06-17 11:27:46,767 [INFO] Validation successful. Covered: 271 days, Invalid dates: 0.0%.
+2026-06-17 11:27:46,769 [INFO] Generating Excel reports...
+2026-06-17 11:27:47,605 [INFO] All Excel reports generated successfully.
+2026-06-17 11:27:48,221 [INFO] All Excel reports generated successfully.
+2026-06-17 11:27:48,222 [INFO] Successfully processed bank statement: Account Statement.pdf
+2026-06-17 14:39:51,606 [ERROR] Failed login attempt.
+2026-06-17 14:39:57,917 [ERROR] Failed login attempt.
+2026-06-17 14:40:00,955 [ERROR] Failed login attempt.
+2026-06-17 14:40:40,578 [INFO] Successful user authentication.
+2026-06-17 14:41:02,575 [INFO] New file uploaded: Hdfc format.PDF
+2026-06-17 14:41:02,648 [INFO] Detected bank via filename: HDFC Bank
+2026-06-17 14:41:02,651 [INFO] Parsing HDFC statement: temp_uploaded_statement.pdf
+2026-06-17 14:41:03,146 [INFO] Detected HDFC Corporate/Current Account layout (table-based parsing)
+2026-06-17 14:41:22,601 [INFO] HDFC extraction complete. Rows: 703
+2026-06-17 14:41:22,657 [INFO] Calculating ABB statistics...
+2026-06-17 14:41:22,761 [INFO] ABB Date Range: 2026-02-01 to 2026-02-27
+2026-06-17 14:41:22,817 [INFO] ABB calculation complete. Summary: {'1M': np.float64(144014448.9), '3M': 'Data Unavailable', '6M': 'Data Unavailable'}
+2026-06-17 14:41:22,817 [INFO] Analyzing credit risk profile...
+2026-06-17 14:41:22,862 [INFO] Starting statement validation...
+2026-06-17 14:41:23,562 [INFO] Validation successful. Covered: 26 days, Invalid dates: 0.0%.
+2026-06-17 14:41:23,564 [INFO] Generating Excel reports...
+2026-06-17 14:41:24,388 [INFO] All Excel reports generated successfully.
+2026-06-17 14:41:24,389 [INFO] Successfully processed bank statement: Hdfc format.PDF
+2026-06-17 14:57:19,245 [INFO] Successful user authentication.
+2026-06-17 14:57:30,616 [INFO] New file uploaded: Account Statement.pdf
+2026-06-17 14:58:17,640 [INFO] Detected bank via signature: HDFC Bank
+2026-06-17 14:58:17,641 [INFO] Parsing HDFC statement: temp_uploaded_statement.pdf
+2026-06-17 14:58:18,085 [INFO] Detected HDFC Savings Account layout (coordinate-based parsing required)
+2026-06-17 14:58:21,645 [INFO] Detected bank via signature: HDFC Bank
+2026-06-17 14:58:21,657 [INFO] Parsing HDFC statement: temp_uploaded_statement.pdf
+2026-06-17 14:58:25,954 [INFO] Detected HDFC Savings Account layout (coordinate-based parsing required)
+2026-06-17 14:58:48,088 [INFO] HDFC extraction complete. Rows: 585
+2026-06-17 14:58:48,144 [INFO] Calculating ABB statistics...
+2026-06-17 14:58:48,462 [INFO] ABB Date Range: 2025-09-01 to 2026-05-31
+2026-06-17 14:58:55,967 [INFO] HDFC extraction complete. Rows: 585
+2026-06-17 14:58:55,974 [INFO] Calculating ABB statistics...
+2026-06-17 14:58:56,002 [INFO] ABB Date Range: 2025-09-01 to 2026-05-31
+2026-06-17 14:58:56,288 [INFO] ABB calculation complete. Summary: {'1M': np.float64(42302.9), '3M': np.float64(44825.65), '6M': np.float64(49531.26)}
+2026-06-17 14:58:56,289 [INFO] Analyzing credit risk profile...
+2026-06-17 14:58:56,340 [INFO] Starting statement validation...
+2026-06-17 14:58:56,909 [INFO] Validation successful. Covered: 271 days, Invalid dates: 0.0%.
+2026-06-17 14:58:56,912 [INFO] Generating Excel reports...
+2026-06-17 14:58:57,512 [INFO] ABB calculation complete. Summary: {'1M': np.float64(42302.9), '3M': np.float64(44825.65), '6M': np.float64(49531.26)}
+2026-06-17 14:58:57,514 [INFO] Analyzing credit risk profile...
+2026-06-17 14:58:57,563 [INFO] Starting statement validation...
+2026-06-17 14:58:58,221 [INFO] Validation successful. Covered: 271 days, Invalid dates: 0.0%.
+2026-06-17 14:58:58,227 [INFO] Generating Excel reports...
+2026-06-17 14:58:58,497 [INFO] All Excel reports generated successfully.
+2026-06-17 14:58:59,398 [INFO] All Excel reports generated successfully.
+2026-06-17 14:58:59,399 [INFO] Successfully processed bank statement: Account Statement.pdf
+2026-06-17 15:16:47,233 [INFO] Successful user authentication.
+2026-06-19 15:51:10,169 [ERROR] Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\ThinkPad\AppData\Local\Programs\Python\Python312\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\ThinkPad\AppData\Local\Programs\Python\Python312\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-06-19 15:51:57,207 [INFO] Successful user authentication.
+2026-06-19 15:52:17,997 [INFO] New file uploaded: IDFC_First bank.pdf
+2026-06-19 15:52:18,140 [INFO] Detected bank via filename: IDFC First Bank
+2026-06-19 15:52:18,155 [INFO] Parsing IDFC statement: temp_uploaded_statement.pdf
+2026-06-19 15:52:30,043 [INFO] IDFC extraction complete. Rows: 367
+2026-06-19 15:52:30,134 [INFO] Calculating ABB statistics...
+2026-06-19 15:52:30,338 [INFO] ABB Date Range: 2024-07-23 to 2025-07-22
+2026-06-19 15:52:30,830 [INFO] ABB calculation complete. Summary: {'1M': np.float64(1519768.5), '3M': np.float64(658796.6), '6M': np.float64(507120.81)}
+2026-06-19 15:52:30,831 [INFO] Analyzing credit risk profile...
+2026-06-19 15:52:30,882 [INFO] Starting statement validation...
+2026-06-19 15:52:31,317 [INFO] Validation successful. Covered: 364 days, Invalid dates: 0.0%.
+2026-06-19 15:52:31,318 [INFO] Generating Excel reports...
+2026-06-19 15:52:31,881 [INFO] All Excel reports generated successfully.
+2026-06-19 15:52:31,882 [INFO] Successfully processed bank statement: IDFC_First bank.pdf
+2026-06-30 12:11:47,242 [INFO] Successful user authentication.
+2026-06-30 12:11:53,989 [INFO] New file uploaded: Hdfc format.PDF
+2026-06-30 12:11:54,082 [INFO] Detected bank via filename: HDFC Bank
+2026-06-30 12:11:54,084 [INFO] Parsing HDFC statement: temp_uploaded_statement.pdf
+2026-06-30 12:11:54,851 [INFO] Detected HDFC Corporate/Current Account layout (table-based parsing)
+2026-06-30 12:12:24,778 [INFO] HDFC extraction complete. Rows: 703
+2026-06-30 12:12:24,875 [INFO] Calculating ABB statistics...
+2026-06-30 12:12:25,002 [INFO] ABB Date Range: 2026-02-01 to 2026-02-27
+2026-06-30 12:12:25,093 [INFO] ABB calculation complete. Summary: {'1M': np.float64(144014448.9), '3M': 'Data Unavailable', '6M': 'Data Unavailable'}
+2026-06-30 12:12:25,094 [INFO] Analyzing credit risk profile...
+2026-06-30 12:12:25,164 [INFO] Starting statement validation...
+2026-06-30 12:12:26,405 [INFO] Validation successful. Covered: 26 days, Invalid dates: 0.0%.
+2026-06-30 12:12:26,406 [INFO] Generating Excel reports...
+2026-06-30 12:12:27,548 [INFO] All Excel reports generated successfully.
+2026-06-30 12:12:27,549 [INFO] Successfully processed bank statement: Hdfc format.PDF

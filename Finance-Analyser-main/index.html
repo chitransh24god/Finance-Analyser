@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyBankLoan AI - Professional Loan Analyzer & Financial Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Custom Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'blob-slow': 'blob 10s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(16px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        blob: {
+                            '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.08)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.95)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased overflow-hidden relative">
+
+    <!-- Ambient Background Blobs (Soft, premium light aesthetic) -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[#F4F7FC]">
+        <div class="absolute -top-[30%] -left-[20%] w-[65%] h-[65%] rounded-full bg-indigo-400/25 blur-[140px] animate-blob-slow"></div>
+        <div class="absolute -bottom-[30%] -right-[20%] w-[65%] h-[65%] rounded-full bg-emerald-400/20 blur-[140px] animate-blob-slow-delay1"></div>
+        <div class="absolute top-[30%] left-[30%] w-[60%] h-[60%] rounded-full bg-pink-400/20 blur-[130px] animate-blob-slow-delay2"></div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- LOGIN GATE -->
+    <!-- ========================================== -->
+    <div id="login-gate" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-100/60 backdrop-blur-xl px-4 animate-fade-in">
+        <div class="w-full max-w-md bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl border border-slate-200/50 p-8 transform transition-all duration-500 hover:scale-[1.01] hover:shadow-indigo-500/10 relative overflow-hidden animate-slide-up">
+            <!-- Glass gloss effect -->
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-blue-500/10 to-emerald-500/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-full blur-2xl"></div>
+            
+            <div class="text-center mb-8 relative z-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-emerald-500 text-white text-3xl mb-4 shadow-lg shadow-blue-500/20">
+                    <i class="fa-solid fa-credit-card animate-pulse-slow"></i>
+                </div>
+                <h2 class="text-2xl font-black tracking-tight finance-gradient-text">MyBankLoan AI</h2>
+                <p class="text-sm text-slate-500 mt-2">Professional Loan Analyzer & Finance Suite</p>
+            </div>
+            
+            <form id="login-form" class="space-y-6 relative z-10">
+                <div>
+                    <label for="password" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Application Password</label>
+                    <input type="password" id="password" required placeholder="Enter authorization key" 
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/70 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all font-medium">
+                </div>
+                <button type="submit" class="w-full btn-glow text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                    Authenticate & Enter
+                </button>
+                <div id="login-error" class="hidden text-center text-sm font-semibold text-red-500 mt-2">
+                    Access Denied: Incorrect Password.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MAIN WORKSPACE -->
+    <!-- ========================================== -->
+    <div id="main-workspace" class="hidden flex h-screen overflow-hidden relative z-10 bg-transparent animate-fade-in">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white/60 backdrop-blur-md border-r border-slate-200/60 flex flex-col flex-shrink-0">
+            <div class="p-6 border-b border-slate-200/60 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 text-white flex items-center justify-center text-xl shadow-md shadow-blue-250">
+                    <i class="fa-solid fa-credit-card animate-pulse-slow"></i>
+                </div>
+                <div>
+                    <h1 class="font-black leading-none text-base finance-gradient-text">MyBankLoan AI</h1>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 mt-1">
+                        Active Hub
+                    </span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                <button id="nav-hub" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all">
+                    <i class="fa-solid fa-cubes text-base"></i>
+                    <span>Financial Hub</span>
+                </button>
+                
+                <div class="pt-4 pb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Services</div>
+                
+                <button id="nav-analyzer" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-semibold transition-all">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-magnifying-glass-chart text-base"></i>
+                        <span>Statement Analyzer</span>
+                    </div>
+                </button>
+            </nav>
+
+            <!-- User Info / Logout -->
+            <div class="p-4 border-t border-gray-200 bg-gray-100/50">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">Role</div>
+                        <div class="text-sm font-bold text-gray-900">Credit Underwriter</div>
+                    </div>
+                    <button id="logout-btn" class="p-2 text-gray-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/20 backdrop-blur-md">
+            <!-- Top Header -->
+            <header class="h-16 border-b border-slate-200/60 flex items-center justify-between px-8 bg-white/40 backdrop-blur-md flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <span id="page-title" class="text-lg font-bold text-slate-800">Financial Hub</span>
+                </div>
+                <div class="text-xs text-slate-400 font-bold uppercase tracking-widest">
+                    Professional Loan Analyzer V3
+                </div>
+            </header>
+
+            <!-- Scrollable Workspace Content -->
+            <div class="flex-1 overflow-y-auto p-8" id="workspace-content">
+
+                <!-- ========================================== -->
+                <!-- PAGE: FINANCIAL HUB (3x2 Grid) -->
+                <!-- ========================================== -->
+                <section id="section-hub" class="space-y-6">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="mb-8">
+                            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Corporate Financial Suite</h2>
+                            <p class="text-sm text-slate-500 mt-1">Select from our suite of institutional-grade valuation and planning calculators.</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Card 1: EMI Calculator -->
+                            <div class="premium-card group flex flex-col justify-between">
+                                <div>
+                                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
+                                        <i class="fa-solid fa-calculator"></i>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-950">EMI Calculator</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Calculate monthly installments, total interest & full amortization schedule for any loan.</p>
+                                </div>
+                                <button onclick="openCalculator('emi')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all">
+                                    <span>Open EMI Calculator</span>
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Card 2: Bond Valuation -->
+                            <div class="premium-card group flex flex-col justify-between">
+                                <div>
+                                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
+                                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-950">Bond Valuation</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Find the fair value of a bond using face value, coupon rate, market rate & tenure.</p>
+                                </div>
+                                <button onclick="openCalculator('bond')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                    <span>Open Bond Valuation</span>
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Card 3: SIP Calculator -->
+                            <div class="premium-card group flex flex-col justify-between">
+                                <div>
+                                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-950">SIP Calculator</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Estimate returns on your monthly SIP investments with compounding growth.</p>
+                                </div>
+                                <button onclick="openCalculator('sip')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                    <span>Open SIP Calculator</span>
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Card 4: FD Calculator -->
+                            <div class="premium-card group flex flex-col justify-between">
+                                <div>
+                                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
+                                        <i class="fa-solid fa-piggy-bank"></i>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-950">FD Calculator</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Calculate maturity amount and interest earned on fixed deposits compounding quarterly.</p>
+                                </div>
+                                <button onclick="openCalculator('fd')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                    <span>Open FD Calculator</span>
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Card 5: NPV / IRR -->
+                            <div class="premium-card group flex flex-col justify-between">
+                                <div>
+                                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
+                                        <i class="fa-solid fa-scale-balanced"></i>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-950">NPV / IRR</h3>
+                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Evaluate investment viability with Net Present Value and Internal Rate of Return.</p>
+                                </div>
+                                <button onclick="openCalculator('npv')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
+                                    <span>Open NPV / IRR</span>
+                                    <i class="fa-solid fa-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- PAGE: STATEMENT ANALYZER (PDF Uploader & Results) -->
+                <!-- ========================================== -->
+                <section id="section-analyzer" class="hidden space-y-8 max-w-7xl mx-auto">
+                    <div class="mb-4">
+                        <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Bank Statement Analysis</h2>
+                        <p class="text-sm text-gray-500 mt-1">Upload a bank statement PDF. The system will analyze, validate, and compute credit risk indicators.</p>
+                    </div>
+
+                    <!-- Bank Selection Dropdown -->
+                    <div class="max-w-md mx-auto mb-6 bg-[#F8F9FC] border border-gray-200 rounded-xl p-4 text-left shadow-sm">
+                        <label for="bank-selector" class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Select Bank Statement Format</label>
+                        <div class="relative">
+                            <select id="bank-selector" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white font-semibold text-gray-700 appearance-none cursor-pointer">
+                                <option value="auto">🔍 Auto-Detect Format (Default)</option>
+                                <option value="axis">Axis Bank (Savings & Neo)</option>
+                                <option value="canara">Canara Bank</option>
+                                <option value="hdfc">HDFC Bank (Savings & Corporate)</option>
+                                <option value="icici">ICICI Bank</option>
+                                <option value="idfc">IDFC First Bank</option>
+                                <option value="kalupur">Kalupur Cooperative Bank</option>
+                                <option value="sbi">State Bank of India (SBI)</option>
+                                <option value="yes">Yes Bank</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                                <i class="fa-solid fa-chevron-down text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PDF Upload Container -->
+                    <div class="dashed-glow-zone bg-white/80 backdrop-blur-md border-2 border-dashed border-slate-300 rounded-3xl p-10 text-center hover:border-indigo-500 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-300 relative group animate-slide-up cursor-pointer">
+                        <input type="file" id="statement-upload" accept="application/pdf" class="absolute inset-0 opacity-0 cursor-pointer">
+                        <div class="flex flex-col items-center justify-center pointer-events-none">
+                            <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <h3 class="font-extrabold text-slate-850 text-lg">Upload Bank Statement PDF</h3>
+                            <p class="text-sm text-slate-500 mt-1">Drag and drop your file here, or click to browse</p>
+                            <p class="text-xs text-slate-400 mt-3 font-semibold uppercase tracking-wider bg-slate-100/80 px-3 py-1.5 rounded-lg">Supported Banks: HDFC, ICICI, SBI, Axis, IDFC, Yes, Canara, Kalupur</p>
+                        </div>
+                    </div>
+
+                    <!-- Password Dialog Backdrop (Streamlit Password Protected Files) -->
+                    <div id="pdf-password-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center">
+                        <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm border border-slate-100">
+                            <h3 class="text-lg font-bold text-gray-900 mb-2">Statement Password Required</h3>
+                            <p class="text-sm text-gray-500 mb-4">This bank statement is encrypted. Please enter the decryption password.</p>
+                            <input type="password" id="pdf-password-input" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4" placeholder="Enter PDF password">
+                            <div class="flex gap-3">
+                                <button onclick="submitPdfPassword()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-all">Unlock</button>
+                                <button onclick="closePasswordModal()" class="flex-1 bg-gray-100 text-gray-700 font-bold py-2 rounded-lg hover:bg-gray-200 transition-all">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Loader -->
+                    <div id="analyzer-loader" class="hidden flex flex-col items-center justify-center py-16">
+                        <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                        <h4 class="font-bold text-gray-900 mt-4 text-base">Processing Bank Statement...</h4>
+                        <p class="text-sm text-gray-500 mt-1" id="loader-status">Extracting text coordinates...</p>
+                    </div>
+
+                    <!-- Analyzer Results Content (Initially Hidden) -->
+                    <div id="analyzer-results" class="hidden space-y-8">
+                        <!-- Metadata Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="kpi-card p-5">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Customer Name</span>
+                                <span id="meta-name" class="text-lg font-extrabold text-slate-900 block mt-2">MR ASHISH DOKWAL</span>
+                            </div>
+                            <div class="kpi-card p-5">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Account Number</span>
+                                <span id="meta-account" class="text-lg font-extrabold text-slate-900 block mt-2">50100656476928</span>
+                            </div>
+                            <div class="kpi-card p-5">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Bank Name</span>
+                                <span id="meta-bank" class="text-lg font-extrabold text-indigo-600 block mt-2">HDFC Bank</span>
+                            </div>
+                            <div class="kpi-card p-5">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Statement Period</span>
+                                <span id="meta-period" class="text-sm font-bold text-slate-900 block mt-2">2025-09-01 to 2026-05-31</span>
+                            </div>
+                        </div>
+
+                        <!-- Sub-tab Navigation (Streamlit Tab styling) -->
+                        <div class="border-b border-gray-200">
+                            <nav class="flex gap-6" id="analyzer-subtabs">
+                                <button onclick="switchSubtab('dashboard')" class="subtab-item active py-4 font-semibold text-sm border-b-2 transition-all">Dashboard</button>
+                                <button onclick="switchSubtab('transactions')" class="subtab-item py-4 font-semibold text-sm border-b-2 transition-all">Transactions</button>
+                                <button onclick="switchSubtab('abb')" class="subtab-item py-4 font-semibold text-sm border-b-2 transition-all">ABB Analysis</button>
+                                <button onclick="switchSubtab('assessment')" class="subtab-item py-4 font-semibold text-sm border-b-2 transition-all">Loan Assessment</button>
+                                <button onclick="switchSubtab('downloads')" class="subtab-item py-4 font-semibold text-sm border-b-2 transition-all">Export Reports</button>
+                            </nav>
+                        </div>
+
+                        <!-- Tab: Dashboard -->
+                        <div id="subtab-dashboard" class="subtab-content space-y-8">
+                            <!-- ABB rolling cards -->
+                            <div>
+                                <h3 class="text-base font-extrabold text-gray-900 mb-4 uppercase tracking-wider">Average Daily Balance (ABB) Summary</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div class="kpi-card p-6">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Latest Month ABB (1M)</span>
+                                        <span id="abb-1m" class="text-3xl font-extrabold text-indigo-600 block mt-2">₹0.00</span>
+                                    </div>
+                                    <div class="kpi-card p-6">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">3 Months Rolling ABB (3M)</span>
+                                        <span id="abb-3m" class="text-3xl font-extrabold text-indigo-600 block mt-2">₹0.00</span>
+                                    </div>
+                                    <div class="kpi-card p-6">
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">6 Months Rolling ABB (6M)</span>
+                                        <span id="abb-6m" class="text-3xl font-extrabold text-indigo-600 block mt-2">₹0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Flow Summary metrics -->
+                            <div>
+                                <h3 class="text-base font-extrabold text-slate-800 mb-4 uppercase tracking-wider">Account Flow Summary</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Total Credits Value</span>
+                                        <span id="flow-credits" class="text-lg font-extrabold text-emerald-600 block mt-1">₹0.00</span>
+                                    </div>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Total Debits Value</span>
+                                        <span id="flow-debits" class="text-lg font-extrabold text-rose-600 block mt-1">₹0.00</span>
+                                    </div>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Highest Balance</span>
+                                        <span id="flow-highest" class="text-lg font-extrabold text-slate-800 block mt-1">₹0.00</span>
+                                    </div>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Lowest Balance</span>
+                                        <span id="flow-lowest" class="text-lg font-extrabold text-slate-800 block mt-1">₹0.00</span>
+                                    </div>
+                                    <div class="bg-white/70 border border-slate-200/60 rounded-2xl p-4 shadow-sm">
+                                        <span class="text-xs font-semibold text-slate-450 block">Latest Balance</span>
+                                        <span id="flow-latest" class="text-lg font-extrabold text-slate-800 block mt-1">₹0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visual Balance Trend Curve -->
+                            <div class="premium-card p-6">
+                                <h3 class="text-base font-extrabold text-slate-900 mb-4">Daily Balance Trend Chart</h3>
+                                <div class="h-80 w-full relative">
+                                    <canvas id="ledger-trend-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Transactions -->
+                        <div id="subtab-transactions" class="subtab-content hidden space-y-6">
+                            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                                <div class="relative w-full md:w-96">
+                                    <input type="text" id="tx-search-input" placeholder="🔍 Search by particulars..." 
+                                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400"></i>
+                                </div>
+                                <div class="flex items-center gap-3 w-full md:w-auto">
+                                    <input type="number" id="tx-filter-min" placeholder="Min Amount" class="px-3 py-2 border rounded-lg w-full md:w-32 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input type="number" id="tx-filter-max" placeholder="Max Amount" class="px-3 py-2 border rounded-lg w-full md:w-32 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button onclick="applyTxFilters()" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-all">Filter</button>
+                                    <button onclick="resetTxFilters()" class="bg-gray-100 text-gray-700 font-bold px-4 py-2 rounded-lg hover:bg-gray-200 transition-all">Reset</button>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                                <table class="w-full text-left text-sm border-collapse" id="transactions-table">
+                                    <thead>
+                                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold">
+                                            <th class="p-4">Date</th>
+                                            <th class="p-4">Particulars</th>
+                                            <th class="p-4 text-right">Debit (₹)</th>
+                                            <th class="p-4 text-right">Credit (₹)</th>
+                                            <th class="p-4 text-right">Balance (₹)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 text-gray-700">
+                                        <!-- Dynamic transactions -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Pagination/Stats -->
+                            <div class="text-xs text-gray-400 font-semibold" id="table-stats-footer">
+                                Showing 0 of 0 transactions
+                            </div>
+                        </div>
+
+                        <!-- Tab: ABB Analysis -->
+                        <div id="subtab-abb" class="subtab-content hidden space-y-8">
+                            <!-- Target balances table -->
+                            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                                <table class="w-full text-left text-sm border-collapse" id="abb-months-table">
+                                    <thead>
+                                        <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold">
+                                            <th class="p-4">Month</th>
+                                            <th class="p-4 text-right">5th Bal</th>
+                                            <th class="p-4 text-right">10th Bal</th>
+                                            <th class="p-4 text-right">15th Bal</th>
+                                            <th class="p-4 text-right">20th Bal</th>
+                                            <th class="p-4 text-right">25th Bal</th>
+                                            <th class="p-4 text-right">Month End</th>
+                                            <th class="p-4 text-right font-bold text-blue-600">Calculated ABB</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 text-gray-700">
+                                        <!-- Dynamic monthly balances -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- ABB Monthly chart -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-6">
+                                <h3 class="text-base font-extrabold text-gray-900 mb-4">ABB Performance Over Time</h3>
+                                <div class="h-80 w-full relative">
+                                    <canvas id="abb-history-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Loan Assessment -->
+                        <div id="subtab-assessment" class="subtab-content hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <!-- Metrics summary list -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-6 lg:col-span-1 space-y-4">
+                                <h3 class="text-base font-extrabold text-gray-900 border-b pb-2">Underwriting Parameters</h3>
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex justify-between"><span class="text-gray-400">Days Covered:</span><span class="font-bold text-gray-900" id="assess-days">0 days</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-400">Total Credits:</span><span class="font-bold text-gray-900" id="assess-credits">₹0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-400">Total Debits:</span><span class="font-bold text-gray-900" id="assess-debits">₹0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-400">Transaction Count:</span><span class="font-bold text-gray-900" id="assess-count">0 Cr / 0 Dr</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-400">Highest Balance:</span><span class="font-bold text-gray-900" id="assess-highest">₹0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-400">Lowest Balance:</span><span class="font-bold text-gray-900" id="assess-lowest">₹0.00</span></div>
+                                    <div class="flex justify-between"><span class="text-gray-400">Latest Balance:</span><span class="font-bold text-gray-900" id="assess-latest">₹0.00</span></div>
+                                </div>
+                            </div>
+
+                            <!-- Suitability verdicts -->
+                            <div class="lg:col-span-2 space-y-6">
+                                <h3 class="text-base font-extrabold text-gray-900">Credit Verdict Matrix</h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <!-- Status Box: ABB -->
+                                    <div class="border border-gray-200 rounded-xl p-4 flex items-center justify-between" id="status-card-abb">
+                                        <div>
+                                            <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 block">ABB Strength</span>
+                                            <h4 class="font-extrabold text-lg mt-0.5" id="assess-val-abb">Good</h4>
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold" id="badge-assess-abb">Good</span>
+                                    </div>
+                                    
+                                    <!-- Status Box: Balance Stability -->
+                                    <div class="border border-gray-200 rounded-xl p-4 flex items-center justify-between" id="status-card-stability">
+                                        <div>
+                                            <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 block">Balance Stability</span>
+                                            <h4 class="font-extrabold text-lg mt-0.5" id="assess-val-stability">Good</h4>
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold" id="badge-assess-stability">Good</span>
+                                    </div>
+
+                                    <!-- Status Box: Liquidity -->
+                                    <div class="border border-gray-200 rounded-xl p-4 flex items-center justify-between" id="status-card-liquidity">
+                                        <div>
+                                            <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 block">Liquidity Flow</span>
+                                            <h4 class="font-extrabold text-lg mt-0.5" id="assess-val-liquidity">Good</h4>
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold" id="badge-assess-liquidity">Good</span>
+                                    </div>
+
+                                    <!-- Status Box: Overall -->
+                                    <div class="border-2 rounded-xl p-4 flex items-center justify-between" id="status-card-overall">
+                                        <div>
+                                            <span class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 block">Overall Risk Rating</span>
+                                            <h4 class="font-extrabold text-lg mt-0.5" id="assess-val-overall">Good</h4>
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-full text-xs font-bold" id="badge-assess-overall">Good</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gray-50 border-l-4 border-blue-600 rounded-lg p-5">
+                                    <h5 class="text-sm font-bold text-blue-600">Credit Risk Analyst Verdict</h5>
+                                    <p class="text-sm font-medium text-gray-700 mt-2 leading-relaxed" id="assess-verdict-note">
+                                        Account shows positive cash flows and low volatility.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Downloads -->
+                        <div id="subtab-downloads" class="subtab-content hidden space-y-6">
+                            <h3 class="text-base font-extrabold text-gray-900">Compile Professional Spreadsheet Reports</h3>
+                            <p class="text-sm text-gray-500">Download formatted, styled spreadsheets (featuring zebra patterns, alignments, and borders) constructed completely locally.</p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button onclick="downloadReport('cleaned_transactions')" class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-left transition-all">
+                                    <div>
+                                        <h4 class="font-bold text-gray-900">Cleaned Transactions Log</h4>
+                                        <p class="text-xs text-gray-400 mt-1">Export transaction list formatted chronologically.</p>
+                                    </div>
+                                    <i class="fa-solid fa-file-arrow-down text-blue-600 text-xl"></i>
+                                </button>
+
+                                <button onclick="downloadReport('monthly_abb')" class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-left transition-all">
+                                    <div>
+                                        <h4 class="font-bold text-gray-900">Monthly ABB Targets Table</h4>
+                                        <p class="text-xs text-gray-400 mt-1">Export the 5th, 10th, 15th, 20th, 25th, and End balances.</p>
+                                    </div>
+                                    <i class="fa-solid fa-file-arrow-down text-blue-600 text-xl"></i>
+                                </button>
+
+                                <button onclick="downloadReport('overall_abb')" class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-left transition-all">
+                                    <div>
+                                        <h4 class="font-bold text-gray-900">Rolling ABB Summary</h4>
+                                        <p class="text-xs text-gray-400 mt-1">Export the 1-Month, 3-Month, and 6-Month rolling calculations.</p>
+                                    </div>
+                                    <i class="fa-solid fa-file-arrow-down text-blue-600 text-xl"></i>
+                                </button>
+
+                                <button onclick="downloadReport('loan_assessment')" class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-left transition-all">
+                                    <div>
+                                        <h4 class="font-bold text-gray-900">Credit Risk Suitability Report</h4>
+                                        <p class="text-xs text-gray-400 mt-1">Export parameters, risk flags, and the underwriter rating.</p>
+                                    </div>
+                                    <i class="fa-solid fa-file-arrow-down text-blue-600 text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========================================== -->
+                <!-- PAGE: CALCULATOR DETAIL VIEWS -->
+                <!-- ========================================== -->
+                <section id="section-calculator" class="hidden space-y-6 max-w-6xl mx-auto">
+                    <button onclick="backToHub()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-bold text-gray-700 transition-all mb-4">
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                        <span>Back to Calculator Suite</span>
+                    </button>
+                    
+                    <div id="calculator-workspace">
+                        <!-- Dynamic calculator markup loaded here -->
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- LIBRARIES -->
+    <!-- ========================================== -->
+    <!-- PDF.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Set workerSrc for PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <!-- Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ExcelJS library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+
+    <!-- Custom Javascript Files -->
+    <script src="js/pdf_extractor.js"></script>
+    <script src="js/abb_calculator.js"></script>
+    <script src="js/credit_analyzer.js"></script>
+    <script src="js/excel_generator.js"></script>
+    <script src="js/calculators.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
