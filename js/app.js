@@ -257,19 +257,30 @@ async function processUploadedStatement(password = "") {
         loader.classList.add("hidden");
         results.classList.remove("hidden");
         errorModal.classList.add("hidden");
+        document.getElementById("pdf-password-error").classList.add("hidden");
 
         // Clear file input cache
         document.getElementById("statement-upload").value = "";
 
     } catch (err) {
         loader.classList.add("hidden");
-        const errMsg = err.message || "";
+        const errMsg = (err.message || "").toLowerCase();
+        const errName = err.name || "";
         
-        if (errMsg.includes("password") || errMsg.includes("decrypt") || errMsg.includes("encrypted")) {
+        if (errName === "PasswordException" || errMsg.includes("password") || errMsg.includes("decrypt") || errMsg.includes("encrypted")) {
             // Trigger password modal
             errorModal.classList.remove("hidden");
+            const pwdInput = document.getElementById("pdf-password-input");
+            if (password) {
+                // Was tried with password but failed -> show error text
+                document.getElementById("pdf-password-error").classList.remove("hidden");
+            } else {
+                document.getElementById("pdf-password-error").classList.add("hidden");
+            }
+            pwdInput.focus();
+            pwdInput.select();
         } else {
-            alert(`Processing Error: ${errMsg}`);
+            alert(`Processing Error: ${err.message || err}`);
             console.error(err);
         }
     }
@@ -279,11 +290,25 @@ function updateLoaderStatus(text) {
     document.getElementById("loader-status").innerText = text;
 }
 
+// Attach Enter Key listener for PDF Password Input
+document.addEventListener("DOMContentLoaded", () => {
+    const pwdInput = document.getElementById("pdf-password-input");
+    if (pwdInput) {
+        pwdInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                submitPdfPassword();
+            }
+        });
+    }
+});
+
 // Password modal submits
 function submitPdfPassword() {
     const pwd = document.getElementById("pdf-password-input").value;
     if (!pwd) {
-        alert("Please enter a decryption key.");
+        document.getElementById("pdf-password-error").innerText = "Please enter a password.";
+        document.getElementById("pdf-password-error").classList.remove("hidden");
         return;
     }
     document.getElementById("pdf-password-modal").classList.add("hidden");
@@ -292,6 +317,8 @@ function submitPdfPassword() {
 
 function closePasswordModal() {
     document.getElementById("pdf-password-modal").classList.add("hidden");
+    document.getElementById("pdf-password-error").classList.add("hidden");
+    document.getElementById("pdf-password-input").value = "";
     document.getElementById("statement-upload").value = "";
 }
 
