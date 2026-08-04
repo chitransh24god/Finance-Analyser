@@ -6,13 +6,15 @@
 async function extractTextAndLayoutFromPdf(arrayBuffer, password = "") {
     let pdfDoc = null;
     try {
+        // Clone ArrayBuffer so PDF.js Web Worker detachment does not mutate original pending bytes
+        const bufferCopy = (arrayBuffer && arrayBuffer.slice) ? arrayBuffer.slice(0) : arrayBuffer;
         const loadingTask = pdfjsLib.getDocument({
-            data: arrayBuffer,
+            data: bufferCopy,
             password: password
         });
         pdfDoc = await loadingTask.promise;
     } catch (err) {
-        if (err.name === "PasswordException") {
+        if (err.name === "PasswordException" || (err.message && err.message.toLowerCase().includes("password"))) {
             throw new Error("password"); // Prompt user for key
         }
         throw err;
