@@ -196,6 +196,11 @@ async function processUploadedStatement(password = "") {
     const results = document.getElementById("analyzer-results");
     const errorModal = document.getElementById("pdf-password-modal");
 
+    if (!state.pendingFileBytes || state.pendingFileBytes.length === 0) {
+        alert("File memory buffer is empty. Please select your PDF statement again.");
+        return;
+    }
+
     results.classList.add("hidden");
     loader.classList.remove("hidden");
     updateLoaderStatus("Extracting character layouts...");
