@@ -64,8 +64,8 @@ class HdfcExtractor(BaseExtractor):
         transactions = []
         
         with pdfplumber.open(pdf_path, password=password) as pdf:
-            # Detect layout format by looking at columns of first page table
             is_savings_layout = False
+            is_cc_layout = False
             first_page = pdf.pages[0]
             tables = first_page.extract_tables()
             
@@ -74,9 +74,14 @@ class HdfcExtractor(BaseExtractor):
                 if "date" in headers and "closingbalance" in headers and "withdrawalamt." in headers:
                     is_savings_layout = True
                     log_info("Detected HDFC Savings Account layout (coordinate-based parsing required)")
+                elif "date" in headers and "amount(inrs.)" in headers:
+                    is_cc_layout = True
+                    log_info("Detected HDFC Credit Card layout")
             
             if is_savings_layout:
                 transactions = self._parse_savings_coordinates(pdf)
+            elif is_cc_layout:
+                transactions = self._parse_credit_card_table(pdf)
             else:
                 log_info("Detected HDFC Corporate/Current Account layout (table-based parsing)")
                 transactions = self._parse_corporate_table(pdf)
@@ -290,4 +295,45 @@ class HdfcExtractor(BaseExtractor):
                 transactions.append(current_tx)
                 current_tx = None
                 
+        return transactions
+
+    def _parse_credit_card_table(self, pdf) -> list[dict]:
+        """
+        Parses HDFC Credit Card statement tables (Date, Transaction Description, Amount in Rs).
+        """
+        transactions = []
+        for page in pdf.pages:
+            tables = page.extract_tables()
+            if not tables:
+                continue
+            for table in tables:
+                headers = [str(col).lower().replace("\n", "").replace(" ", "") for col in table[0] if col is not None]
+                if "date" in headers and ("amount(inrs.)" in headers or "amount" in headers):
+                    date_idx = headers.index("date")
+                    desc_idx = headers.index("transactiondescription") if "transactiondescription" in headers else 1
+                    amt_idx = headers.index("amount(inrs.)") if "amount(inrs.)" in headers else (headers.index("amount") if "amount" in headers else -1)
+                    
+                    for row in table[1:]:
+                        if not row or len(row) <= max(date_idx, desc_idx, amt_idx):
+                            continue
+                        date_str = str(row[date_idx]).strip() if row[date_idx] is not None else ""
+                        desc_str = str(row[desc_idx]).strip() if row[desc_idx] is not None else ""
+                        amt_str = str(row[amt_idx]).strip() if row[amt_idx] is not None else ""
+                        
+                        if not date_str or not amt_str:
+                            continue
+                        
+                        is_cr = "cr" in amt_str.lower()
+                        clean_amt = amt_str.lower().replace("cr", "").replace(",", "").strip()
+                        
+                        deb_val = "" if is_cr else clean_amt
+                        cred_val = clean_amt if is_cr else ""
+                        
+                        transactions.append({
+                            "date": date_str,
+                            "narration": desc_str.replace("\n", " ").strip(),
+                            "debit": deb_val,
+                            "credit": cred_val,
+                            "balance": ""
+                        })
         return transactions

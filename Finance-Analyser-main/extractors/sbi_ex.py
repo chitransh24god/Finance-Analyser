@@ -53,6 +53,7 @@ class SbiExtractor(BaseExtractor):
                     if "txndate" in headers and "balance" in headers:
                         date_idx = headers.index("txndate")
                         desc_idx = headers.index("description") if "description" in headers else 2
+                        ref_idx = headers.index("refno.chequeno.") if "refno.chequeno." in headers else (headers.index("refno/chequeno") if "refno/chequeno" in headers else -1)
                         deb_idx = headers.index("debit") if "debit" in headers else 5
                         cred_idx = headers.index("credit") if "credit" in headers else 6
                         bal_idx = headers.index("balance")
@@ -63,6 +64,7 @@ class SbiExtractor(BaseExtractor):
                             
                             date_str = str(row[date_idx]).strip() if row[date_idx] is not None else ""
                             desc_str = str(row[desc_idx]).strip() if row[desc_idx] is not None else ""
+                            ref_str = str(row[ref_idx]).strip() if (ref_idx != -1 and ref_idx < len(row) and row[ref_idx] is not None) else ""
                             deb_str = str(row[deb_idx]).strip() if row[deb_idx] is not None else ""
                             cred_str = str(row[cred_idx]).strip() if row[cred_idx] is not None else ""
                             bal_str = str(row[bal_idx]).strip() if row[bal_idx] is not None else ""
@@ -71,12 +73,17 @@ class SbiExtractor(BaseExtractor):
                             clean_date = date_str.replace("\n", " ").strip()
                             parsed_dt = self.parse_date(clean_date)
                             
+                            # Combine description and ref number if present
+                            full_desc = desc_str.replace("\n", " ").strip()
+                            if ref_str:
+                                full_desc += " Ref: " + ref_str.replace("\n", " ").strip()
+                            
                             if parsed_dt:
                                 if current_tx:
                                     transactions.append(current_tx)
                                 current_tx = {
                                     "date": parsed_dt,
-                                    "narration": desc_str.replace("\n", " ").strip(),
+                                    "narration": full_desc,
                                     "debit": deb_str,
                                     "credit": cred_str,
                                     "balance": bal_str
@@ -84,7 +91,7 @@ class SbiExtractor(BaseExtractor):
                             else:
                                 if current_tx and desc_str:
                                     # Append multi-line narration
-                                    current_tx["narration"] += " " + desc_str.replace("\n", " ").strip()
+                                    current_tx["narration"] += " " + full_desc
                                     current_tx["narration"] = re.sub(r"\s+", " ", current_tx["narration"]).strip()
                                     
             if current_tx:
