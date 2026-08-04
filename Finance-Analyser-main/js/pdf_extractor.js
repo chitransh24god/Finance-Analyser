@@ -3,13 +3,13 @@
 /**
  * Loads a PDF file and extracts text + coordinates page-by-page.
  */
-async function extractTextAndLayoutFromPdf(arrayBuffer, password = "") {
+async function extractTextAndLayoutFromPdf(pdfBytes, password = "") {
     let pdfDoc = null;
     try {
-        // Clone ArrayBuffer so PDF.js Web Worker detachment does not mutate original pending bytes
-        const bufferCopy = (arrayBuffer && arrayBuffer.slice) ? arrayBuffer.slice(0) : arrayBuffer;
+        // Create a fresh Uint8Array copy so PDF.js Web Worker never detaches original file bytes
+        const bytesForPdfjs = (pdfBytes instanceof Uint8Array) ? new Uint8Array(pdfBytes) : (pdfBytes && pdfBytes.slice ? new Uint8Array(pdfBytes.slice(0)) : pdfBytes);
         const loadingTask = pdfjsLib.getDocument({
-            data: bufferCopy,
+            data: bytesForPdfjs,
             password: password
         });
         pdfDoc = await loadingTask.promise;

@@ -183,7 +183,8 @@ function initUploadListener() {
         
         const reader = new FileReader();
         reader.onload = function(event) {
-            state.pendingFileBytes = event.target.result;
+            // Store as Uint8Array so original file data is preserved
+            state.pendingFileBytes = new Uint8Array(event.target.result);
             processUploadedStatement();
         };
         reader.readAsArrayBuffer(file);
@@ -200,8 +201,9 @@ async function processUploadedStatement(password = "") {
     updateLoaderStatus("Extracting character layouts...");
 
     try {
-        // Parse PDF in client-side using PDF.js
-        const extractedTextAndLayout = await extractTextAndLayoutFromPdf(state.pendingFileBytes, password);
+        // Pass a fresh Uint8Array clone so PDF.js Web Worker never detaches state.pendingFileBytes
+        const freshPdfBytes = new Uint8Array(state.pendingFileBytes);
+        const extractedTextAndLayout = await extractTextAndLayoutFromPdf(freshPdfBytes, password);
         
         updateLoaderStatus("Identifying bank statement layout...");
         const selectedBank = document.getElementById("bank-selector").value;
