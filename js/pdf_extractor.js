@@ -6,7 +6,6 @@
 async function extractTextAndLayoutFromPdf(pdfBytes, password = "") {
     let pdfDoc = null;
     try {
-        // Create a fresh Uint8Array copy so PDF.js Web Worker never detaches original file bytes
         const bytesForPdfjs = (pdfBytes instanceof Uint8Array) ? new Uint8Array(pdfBytes) : (pdfBytes && pdfBytes.slice ? new Uint8Array(pdfBytes.slice(0)) : pdfBytes);
         const loadingTask = pdfjsLib.getDocument({
             data: bytesForPdfjs,
@@ -15,7 +14,7 @@ async function extractTextAndLayoutFromPdf(pdfBytes, password = "") {
         pdfDoc = await loadingTask.promise;
     } catch (err) {
         if (err.name === "PasswordException" || (err.message && err.message.toLowerCase().includes("password"))) {
-            throw new Error("password"); // Prompt user for key
+            throw new Error("password");
         }
         throw err;
     }
@@ -28,9 +27,6 @@ async function extractTextAndLayoutFromPdf(pdfBytes, password = "") {
         const textContent = await page.getTextContent();
         
         const pageItems = textContent.items.map(item => {
-            // transform matrix [a, b, c, d, tx, ty]
-            // tx = x coordinate (horizontal position)
-            // ty = y coordinate (vertical position, usually starts at bottom of page)
             return {
                 text: item.str,
                 x0: item.transform[4],
@@ -40,7 +36,6 @@ async function extractTextAndLayoutFromPdf(pdfBytes, password = "") {
             };
         });
 
-        // Group into lines by vertical coordinate
         const linesDict = {};
         pageItems.forEach(item => {
             const y = item.y0;
@@ -97,67 +92,65 @@ async function routeAndExtractTransactions(pdfData, filename, selectedBank = "au
     let parser = parseGeneric;
 
     if (selectedBank && selectedBank !== "auto") {
-        if (selectedBank === "axis") {
-            bankName = "Axis Bank";
-            parser = parseAxis;
-        } else if (selectedBank === "canara") {
-            bankName = "Canara Bank";
-            parser = parseCanara;
-        } else if (selectedBank === "hdfc") {
-            bankName = "HDFC Bank";
-            parser = parseHdfc;
-        } else if (selectedBank === "icici") {
-            bankName = "ICICI Bank";
-            parser = parseIcici;
-        } else if (selectedBank === "idfc") {
-            bankName = "IDFC First Bank";
-            parser = parseIdfc;
-        } else if (selectedBank === "kalupur") {
-            bankName = "Kalupur Cooperative Bank";
-            parser = parseKalupur;
-        } else if (selectedBank === "sbi") {
-            bankName = "SBI Bank";
-            parser = parseSbi;
-        } else if (selectedBank === "yes") {
-            bankName = "Yes Bank";
-            parser = parseYes;
-        }
+        if (selectedBank === "axis") { bankName = "Axis Bank"; parser = parseAxis; }
+        else if (selectedBank === "canara") { bankName = "Canara Bank"; parser = parseCanara; }
+        else if (selectedBank === "hdfc") { bankName = "HDFC Bank"; parser = parseHdfc; }
+        else if (selectedBank === "icici") { bankName = "ICICI Bank"; parser = parseIcici; }
+        else if (selectedBank === "idfc") { bankName = "IDFC First Bank"; parser = parseIdfc; }
+        else if (selectedBank === "kalupur") { bankName = "Kalupur Cooperative Bank"; parser = parseKalupur; }
+        else if (selectedBank === "sbi") { bankName = "State Bank of India (SBI)"; parser = parseSbi; }
+        else if (selectedBank === "yes") { bankName = "Yes Bank"; parser = parseYes; }
+        else if (selectedBank === "kotak") { bankName = "Kotak Mahindra Bank"; parser = parseKotak; }
+        else if (selectedBank === "pnb") { bankName = "Punjab National Bank"; parser = parsePnb; }
+        else if (selectedBank === "bob") { bankName = "Bank of Baroda"; parser = parseBob; }
+        else if (selectedBank === "union") { bankName = "Union Bank of India"; parser = parseUnion; }
+        else if (selectedBank === "indusind") { bankName = "IndusInd Bank"; parser = parseIndusind; }
+        else if (selectedBank === "cbi") { bankName = "Central Bank of India"; parser = parseCbi; }
+        else if (selectedBank === "boi") { bankName = "Bank of India"; parser = parseBoi; }
     } else {
-        // Route Bank formats automatically
         if (filenameLower.includes("hdfc") || textLower.includes("hdfc bank") || textLower.includes("hdfcbank")) {
-            bankName = "HDFC Bank";
-            parser = parseHdfc;
+            bankName = "HDFC Bank"; parser = parseHdfc;
         } else if (filenameLower.includes("icici") || filenameLower.includes("ic bank") || textLower.includes("icici bank") || textLower.includes("icic")) {
-            bankName = "ICICI Bank";
-            parser = parseIcici;
+            bankName = "ICICI Bank"; parser = parseIcici;
         } else if (filenameLower.includes("sbi") || filenameLower.includes("state bank") || textLower.includes("state bank of india") || textLower.includes("sbi")) {
-            bankName = "SBI Bank";
-            parser = parseSbi;
+            bankName = "State Bank of India (SBI)"; parser = parseSbi;
         } else if (filenameLower.includes("axis") || filenameLower.includes("axix") || textLower.includes("axis bank") || textLower.includes("axis account")) {
-            bankName = "Axis Bank";
-            parser = parseAxis;
+            bankName = "Axis Bank"; parser = parseAxis;
         } else if (filenameLower.includes("idfc") || textLower.includes("idfc")) {
-            bankName = "IDFC First Bank";
-            parser = parseIdfc;
+            bankName = "IDFC First Bank"; parser = parseIdfc;
         } else if (filenameLower.includes("yes bank") || filenameLower.includes("yes_bank") || textLower.includes("yes bank") || textLower.includes("yesbank")) {
-            bankName = "Yes Bank";
-            parser = parseYes;
+            bankName = "Yes Bank"; parser = parseYes;
         } else if (filenameLower.includes("canara") || textLower.includes("canara bank") || textLower.includes("canara")) {
-            bankName = "Canara Bank";
-            parser = parseCanara;
+            bankName = "Canara Bank"; parser = parseCanara;
         } else if (filenameLower.includes("kalupur") || textLower.includes("kalupur")) {
-            bankName = "Kalupur Cooperative Bank";
-            parser = parseKalupur;
+            bankName = "Kalupur Cooperative Bank"; parser = parseKalupur;
+        } else if (filenameLower.includes("kotak") || textLower.includes("kotak")) {
+            bankName = "Kotak Mahindra Bank"; parser = parseKotak;
+        } else if (filenameLower.includes("pnb") || textLower.includes("punjab national")) {
+            bankName = "Punjab National Bank"; parser = parsePnb;
+        } else if (filenameLower.includes("bob") || textLower.includes("bank of baroda") || textLower.includes("baroda")) {
+            bankName = "Bank of Baroda"; parser = parseBob;
+        } else if (filenameLower.includes("union") || textLower.includes("union bank")) {
+            bankName = "Union Bank of India"; parser = parseUnion;
+        } else if (filenameLower.includes("indusind") || textLower.includes("indusind")) {
+            bankName = "IndusInd Bank"; parser = parseIndusind;
+        } else if (filenameLower.includes("cbi") || textLower.includes("central bank")) {
+            bankName = "Central Bank of India"; parser = parseCbi;
+        } else if (filenameLower.includes("boi") || textLower.includes("bank of india")) {
+            bankName = "Bank of India"; parser = parseBoi;
         }
     }
 
     console.log(`Routing ${filename} to ${bankName} parser.`);
-    
-    // Extract metadata & transaction lists
     const metadata = extractMetadata(pdfData.fullText, bankName);
-    const rawTransactions = parser(pdfData);
+    let rawTransactions = parser(pdfData);
 
-    // If metadata dates are missing, fallback to transaction bounds
+    // Dynamic fallback to Generic Parser if specific parser returns 0 rows
+    if ((!rawTransactions || rawTransactions.length === 0) && parser !== parseGeneric) {
+        console.warn(`${bankName} specific parser extracted 0 rows. Falling back to Generic Regex parser.`);
+        rawTransactions = parseGeneric(pdfData);
+    }
+
     if (rawTransactions.length > 0) {
         rawTransactions.sort((a, b) => new Date(a.Date) - new Date(b.Date));
         if (metadata.start_date === "Not Available") {
@@ -174,9 +167,7 @@ async function routeAndExtractTransactions(pdfData, filename, selectedBank = "au
     };
 }
 
-// ==========================================
-// METADATA PARSER RULES
-// ==========================================
+// Metadata Extraction
 function extractMetadata(text, bankName) {
     const meta = {
         customer_name: "Not Available",
@@ -186,18 +177,13 @@ function extractMetadata(text, bankName) {
         bank_name: bankName
     };
 
-    // 1. Account Number
     let accMatch = text.match(/(?:Account\s*No|Account\s*Number|A\/C\s*No|A\/c\s*Number|Account No\s*:|Account Number\s*:)[:\s]*([0-9A-Za-z]{8,20})/i);
     if (!accMatch) {
         accMatch = text.match(/Statement of (?:Axis )?Account No\s*:?\s*([0-9]{8,20})/i);
     }
     if (accMatch) meta.account_number = accMatch[1].trim();
 
-    // 2. Date Range
-    let periodMatch = text.match(/From\s*:\s*(\d{2}[-\/]\d{2}[-\/]\d{4})\s*To\s*:\s*(\d{2}[-\/]\d{2}[-\/]\d{4})/i);
-    if (!periodMatch) {
-        periodMatch = text.match(/Period\s*:\s*(\d{2}-[A-Za-z]{3}-\d{4})\s*to\s*(\d{2}-[A-Za-z]{3}-\d{4})/i);
-    }
+    let periodMatch = text.match(/(?:Account\s*)?Statement\s*from\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{2}[-\/\.]\d{2}[-\/\.]\d{2,4})\s*to\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{2}[-\/\.]\d{2}[-\/\.]\d{2,4})/i);
     if (!periodMatch) {
         periodMatch = text.match(/Period\s*:\s*(\d{2}-\d{2}-\d{4})\s+(\d{2}-\d{2}-\d{4})/i);
     }
@@ -212,8 +198,6 @@ function extractMetadata(text, bankName) {
         meta.end_date = standardizeDate(periodMatch[2]);
     }
 
-    // 3. Customer Name
-    // Rule A: Explicit Name / Account Name / Customer Name labels
     let nameMatch = text.match(/(?:Account\s*Name|Customer\s*Name|A\/c\s*Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\r?\n|Account|Branch|Statement|Phone|$)/i);
     if (!nameMatch) {
         nameMatch = text.match(/Statement of Transactions in (?:the Account of )?([A-Za-z0-9\s\.\,\&\-]+?)(?: for the period| from|$)/i);
@@ -232,71 +216,38 @@ function extractMetadata(text, bankName) {
         }
     }
 
-    // Rule B: Page 1 Header text before Customer ID / Joint Holder / Account Details
-    if (meta.customer_name === "Not Available") {
-        const page1Text = text.split("\n").slice(0, 20);
-        for (let j = 0; j < page1Text.length; j++) {
-            const line = page1Text[j].trim();
-            if (line.includes("Joint Holder")) {
-                const parts = line.split(/Joint\s*Holder/i);
-                if (parts[0].trim().length >= 3) {
-                    meta.customer_name = parts[0].trim();
-                    break;
-                } else if (j > 0 && page1Text[j-1].trim().length >= 3 && !/statement|report|account/i.test(page1Text[j-1])) {
-                    meta.customer_name = page1Text[j-1].trim();
-                    break;
-                }
-            }
-            if (/Customer ID|IFSC Code|MICR Code|Scheme|Nominee/i.test(line)) {
-                for (let k = 0; k < j; k++) {
-                    const cand = page1Text[k].trim();
-                    if (cand.length >= 3 && cand.length <= 50 && !/axis|bank|statement|account|flat|wing|road|thane|maharashtra|building|street/i.test(cand) && !/\d{5,}/.test(cand)) {
-                        meta.customer_name = cand;
-                        break;
-                    }
-                }
-                if (meta.customer_name !== "Not Available") break;
-            }
-        }
-    }
-
-    // Rule C: Line before "ADDRESS" ONLY if it's on page 1 header (< 50 chars, no transaction keywords/dates)
-    if (meta.customer_name === "Not Available") {
-        const headerLines = text.split("\n").slice(0, 25).map(l => l.trim()).filter(l => l.length > 0);
-        for (let j = 0; j < headerLines.length; j++) {
-            if (headerLines[j].includes("ADDRESS") && !headerLines[j].includes("BRANCH ADDRESS")) {
-                if (j > 0) {
-                    const cand = headerLines[j-1];
-                    if (cand.length >= 3 && cand.length <= 50 && !/\d{2}[-\/]\d{2}[-\/]\d{4}/.test(cand) && !/transaction|balance|opening|closing/i.test(cand)) {
-                        meta.customer_name = cand;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
     return meta;
 }
 
-// Helper: Standardize date to YYYY-MM-DD
 function standardizeDate(dateStr) {
     if (!dateStr) return "";
     const cleanStr = dateStr.trim();
     
     const formats = [
-        { regex: /^\d{2}\/\d{2}\/\d{4}$/, parse: s => s.split("/").reverse().join("-") }, // DD/MM/YYYY
+        { regex: /^\d{2}\/\d{2}\/\d{4}$/, parse: s => s.split("/").reverse().join("-") },
+        { regex: /^\d{2}\-\d{2}\-\d{4}$/, parse: s => s.split("-").reverse().join("-") },
+        { regex: /^\d{2}\.\d{2}\.\d{4}$/, parse: s => s.split(".").reverse().join("-") },
         { regex: /^\d{2}\/\d{2}\/\d{2}$/, parse: s => {
             const parts = s.split("/");
-            return `20${parts[2]}-${parts[1]}-${parts[0]}`; // DD/MM/YY
+            return `20${parts[2]}-${parts[1]}-${parts[0]}`;
         }},
-        { regex: /^\d{2}-[A-Za-z]{3}-\d{4}$/, parse: s => {
+        { regex: /^\d{2}\-\d{2}\-\d{2}$/, parse: s => {
+            const parts = s.split("-");
+            return `20${parts[2]}-${parts[1]}-${parts[0]}`;
+        }},
+        { regex: /^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}$/, parse: s => {
+            const months = { jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06", jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12" };
+            const parts = s.split(/\s+/);
+            const dd = parts[0].padStart(2, "0");
+            const mm = months[parts[1].toLowerCase()] || "01";
+            return `${parts[2]}-${mm}-${dd}`;
+        }},
+        { regex: /^\d{2}\-[A-Za-z]{3}\-\d{4}$/, parse: s => {
             const months = { jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06", jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12" };
             const parts = s.split("-");
             const mm = months[parts[1].toLowerCase()] || "01";
-            return `${parts[2]}-${mm}-${parts[0]}`; // DD-Mmm-YYYY
-        }},
-        { regex: /^\d{2}\.[\d]{2}\.[\d]{4}$/, parse: s => s.split(".").reverse().join("-") } // DD.MM.YYYY
+            return `${parts[2]}-${mm}-${parts[0]}`;
+        }}
     ];
 
     for (const fmt of formats) {
@@ -304,7 +255,6 @@ function standardizeDate(dateStr) {
             return fmt.parse(cleanStr);
         }
     }
-    // Final fallback: try standard browser parsing
     try {
         const d = new Date(cleanStr);
         if (!isNaN(d.getTime())) {
@@ -315,14 +265,12 @@ function standardizeDate(dateStr) {
     return "";
 }
 
-// Helper: Parse amount string (clean commas, handles Dr/Cr indicator)
 function cleanAmountJS(val) {
     if (val === null || val === undefined) return 0.0;
     let valStr = String(val).trim().replace(/,/g, "");
     if (!valStr || valStr === "." || valStr === "-") return 0.0;
     
     const isDr = valStr.toLowerCase().includes("dr");
-    const isCr = valStr.toLowerCase().includes("cr");
     const hasNeg = valStr.includes("-") || (valStr.includes("(") && valStr.includes(")"));
     
     let cleaned = valStr.replace(/[^\d\.]/g, "");
@@ -335,15 +283,9 @@ function cleanAmountJS(val) {
     return amount;
 }
 
-// ==========================================
-// BANK-SPECIFIC PARSER RULES (HDFC, ICICI, etc.)
-// ==========================================
-
 // 1. HDFC Parser
 function parseHdfc(pdfData) {
     const transactions = [];
-    
-    // Check savings account structure
     let isSavings = false;
     if (pdfData.pages[0] && pdfData.pages[0].text) {
         const text = pdfData.pages[0].text.toLowerCase().replace(/\s/g, "");
@@ -353,21 +295,11 @@ function parseHdfc(pdfData) {
     }
 
     if (isSavings) {
-        console.log("Parsing HDFC Savings statement via coordinate bounds.");
         pdfData.pages.forEach(page => {
             let currentTx = null;
-            
             page.lines.forEach(line => {
                 if (line.top < 80 || line.top > 780) return;
-                
-                const dateWords = [];
-                const narrationWords = [];
-                const refWords = [];
-                const valWords = [];
-                const withWords = [];
-                const depWords = [];
-                const balWords = [];
-
+                const dateWords = [], narrationWords = [], refWords = [], valWords = [], withWords = [], depWords = [], balWords = [];
                 line.items.forEach(item => {
                     const x = item.x0;
                     if (x >= 30 && x < 65) dateWords.push(item.text);
@@ -381,8 +313,6 @@ function parseHdfc(pdfData) {
 
                 const dateStr = dateWords.join(" ").trim();
                 const narrationStr = narrationWords.join(" ").trim();
-                const refStr = refWords.join(" ").trim();
-                const valStr = valWords.join(" ").trim();
                 const withStr = withWords.join(" ").trim();
                 const depStr = depWords.join(" ").trim();
                 const balStr = balWords.join(" ").trim();
@@ -406,7 +336,6 @@ function parseHdfc(pdfData) {
         });
         return transactions;
     } else {
-        console.log("Parsing HDFC Corporate statement via strict regex delta.");
         const dateRegex = /(\d{2}\-[A-Za-z]{3}\-\d{2,4})/g;
         return parseViaRegex(pdfData, dateRegex);
     }
@@ -414,19 +343,25 @@ function parseHdfc(pdfData) {
 
 // 2. ICICI Parser
 function parseIcici(pdfData) {
-    console.log("Parsing ICICI statement via strict regex delta.");
     const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})|(\d{1,2}\-[A-Za-z]{3}\-\d{2,4})|(\d{1,2}\/[A-Za-z]{3}\/\d{2,4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
 
-// 3. SBI Parser (Handles split dates)
+// 3. SBI Parser (Hybrid Spatial + Multi-Format Regex Fallback)
 function parseSbi(pdfData) {
-    console.log("Parsing SBI statement via split date spatial coordinates.");
-    const dateCol = 0;
-    const colSplits = [65]; // Only need Date split to collect date anchors
-    
+    console.log("Parsing SBI statement via hybrid parser.");
+    let txs = parseSbiSpatial(pdfData);
+    if (txs && txs.length > 0) {
+        return txs;
+    }
+    console.log("SBI spatial parser returned 0 rows. Using SBI multi-date regex fallback.");
+    const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})|(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})|(\d{1,2}\-[A-Za-z]{3}\-\d{2,4})/g;
+    return parseViaRegex(pdfData, dateRegex);
+}
+
+function parseSbiSpatial(pdfData) {
     const transactions = [];
-    const dateElementRegex = /^\d{1,2}\s+[A-Za-z]{3}$|^\d{1,2}$|^[A-Za-z]{3}$|^\d{4}$/;
+    const dateElementRegex = /^\d{1,2}\s+[A-Za-z]{3}$|^\d{1,2}$|^[A-Za-z]{3}$|^\d{4}$|^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$/;
     
     pdfData.pages.forEach(page => {
         const words = page.items.map(item => ({
@@ -439,7 +374,7 @@ function parseSbi(pdfData) {
         
         const dateAnchors = [];
         words.forEach(w => {
-            if (w.x < colSplits[0] && dateElementRegex.test(w.text)) {
+            if (w.x < 100 && dateElementRegex.test(w.text)) {
                 dateAnchors.push(w);
             }
         });
@@ -516,26 +451,6 @@ function parseSbi(pdfData) {
             const rowWords = r.words;
             rowWords.sort((a, b) => a.x - b.x);
             
-            // Reconstruct wrapped/split decimal digits
-            for (let i = 0; i < rowWords.length; i++) {
-                const w1 = rowWords[i];
-                const text1 = w1.text.trim();
-                if (/\.\d$/.test(text1)) {
-                    for (let j = 0; j < rowWords.length; j++) {
-                        const w2 = rowWords[j];
-                        const text2 = w2.text.trim();
-                        if (/^\d$/.test(text2)) {
-                            if (w2.x > w1.x && w2.y < w1.y && (w2.x - w1.x) < 70.0) {
-                                w1.text = text1 + text2;
-                                w2.text = "";
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // Filter words into description text and numbers
             const descWords = [];
             const numbers = [];
             
@@ -598,30 +513,25 @@ function parseSbi(pdfData) {
 
 // 4. Axis Parser
 function parseAxis(pdfData) {
-    console.log("Parsing Axis statement via strict regex delta.");
     const dateRegex = /(\d{2}\-\d{2}\-\d{4})|(\d{2}\/\d{2}\/\d{4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
 
 // 5. IDFC Parser
 function parseIdfc(pdfData) {
-    console.log("Parsing IDFC statement via strict regex delta.");
     const dateRegex = /(\d{4}\-\d{2}\-\d{2})|(\d{2}\-[A-Za-z]{3}\-\d{4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
 
 // 6. Yes Bank Parser
 function parseYes(pdfData) {
-    console.log("Parsing Yes Bank statement via strict regex delta.");
     const dateRegex = /(\d{2}\-\d{2}\-\d{4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
 
 // 7. Canara Bank Parser
 function parseCanara(pdfData) {
-    console.log("Parsing Canara statement via upward spatial cell layout.");
     const colSplits = [100, 310, 400, 510];
-    const dateCol = 0;
     const partCol = 1;
     const creditCol = 2;
     const debitCol = 3;
@@ -641,7 +551,7 @@ function parseCanara(pdfData) {
         
         const dateAnchors = [];
         words.forEach(w => {
-            if (w.x < colSplits[0] && /^\d{2}\-\d{2}\-\d{4}$/.test(w.text)) {
+            if (w.x < colSplits[0] && (/^\d{2}\-\d{2}\-\d{4}$/.test(w.text) || /^\d{2}\-[A-Za-z]{3}\-\d{4}$/.test(w.text))) {
                 dateAnchors.push(w);
             }
         });
@@ -700,15 +610,18 @@ function parseCanara(pdfData) {
             });
         });
     });
+
+    if (transactions.length === 0) {
+        const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})|(\d{2}-[A-Za-z]{3}-\d{4})/g;
+        return parseViaRegex(pdfData, dateRegex);
+    }
     
     return transactions;
 }
 
 // 8. Kalupur Parser
 function parseKalupur(pdfData) {
-    console.log("Parsing Kalupur statement via downward spatial cell layout.");
     const colSplits = [180, 360, 440, 520];
-    const dateCol = 0;
     const partCol = 1;
     const debitCol = 2;
     const creditCol = 3;
@@ -787,11 +700,58 @@ function parseKalupur(pdfData) {
             });
         });
     });
+
+    if (transactions.length === 0) {
+        const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})|(\d{2}-[A-Za-z]{3}-\d{4})/g;
+        return parseViaRegex(pdfData, dateRegex);
+    }
     
     return transactions;
 }
 
-// 9. Shared Regex Delta-Balance Parser
+// 9. Kotak Parser
+function parseKotak(pdfData) {
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
+    return parseViaRegex(pdfData, dateRegex);
+}
+
+// 10. PNB Parser
+function parsePnb(pdfData) {
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
+    return parseViaRegex(pdfData, dateRegex);
+}
+
+// 11. Bank of Baroda Parser
+function parseBob(pdfData) {
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
+    return parseViaRegex(pdfData, dateRegex);
+}
+
+// 12. Union Bank Parser
+function parseUnion(pdfData) {
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
+    return parseViaRegex(pdfData, dateRegex);
+}
+
+// 13. IndusInd Parser
+function parseIndusind(pdfData) {
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
+    return parseViaRegex(pdfData, dateRegex);
+}
+
+// 14. Central Bank Parser
+function parseCbi(pdfData) {
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
+    return parseViaRegex(pdfData, dateRegex);
+}
+
+// 15. Bank of India Parser
+function parseBoi(pdfData) {
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
+    return parseViaRegex(pdfData, dateRegex);
+}
+
+// Shared Regex Delta-Balance Parser
 function parseViaRegex(pdfData, dateRegex) {
     const transactions = [];
     let currentTx = null;
@@ -842,16 +802,9 @@ function parseViaRegex(pdfData, dateRegex) {
 
                 const parsed = standardizeDate(mStr);
                 if (parsed) {
-                    const yearPart = mStr.split(/[/\-]/).pop();
-                    if (yearPart.length === 4) {
-                        bestDate = parsed;
-                        bestDateStr = mStr;
-                        break;
-                    }
-                    if (!bestDate) {
-                        bestDate = parsed;
-                        bestDateStr = mStr;
-                    }
+                    bestDate = parsed;
+                    bestDateStr = mStr;
+                    break;
                 }
             }
 
@@ -973,10 +926,9 @@ function parseViaRegex(pdfData, dateRegex) {
     return transactions;
 }
 
-// 10. Generic Parser (Fallback)
+// Generic Parser (Fallback)
 function parseGeneric(pdfData) {
     console.log("Parsing via Generic regex delta fallback.");
     const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
-
