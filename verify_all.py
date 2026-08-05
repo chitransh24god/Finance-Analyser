@@ -1,21 +1,35 @@
 import os
 import sys
 
-sys.path.insert(0, r"C:\Users\ThinkPad\Downloads\Finance-Analyser-main")
+base_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, base_dir)
 
 from extractors import detect_bank_and_get_extractor
 from utils.abb_calculator import calculate_monthly_abb
 from utils.credit_analyzer import analyze_credit_profile
 import pandas as pd
 
-pdf_dir = r"C:\Users\ThinkPad\Downloads\HONEY BANK STATEMENT (2)\HONEY BANK STATEMENT"
-if not os.path.exists(pdf_dir):
-    pdf_dir = r"C:\Users\ThinkPad\Downloads\excel_file_management\pdfs_of_statements"
+search_dirs = [
+    os.path.join(base_dir, "uploads"),
+    r"C:\Users\ThinkPad\Downloads\HONEY BANK STATEMENT (2)\HONEY BANK STATEMENT",
+    r"C:\Users\ThinkPad\Downloads\excel_file_management\pdfs_of_statements"
+]
 
-pdf_files = sorted([f for f in os.listdir(pdf_dir) if f.lower().endswith('.pdf')])
+pdf_dir = None
+for d in search_dirs:
+    if os.path.exists(d) and os.listdir(d):
+        pdf_dir = d
+        break
+
+if not pdf_dir:
+    pdf_dir = os.path.join(base_dir, "uploads")
+
+pdf_files = sorted([f for f in os.listdir(pdf_dir) if f.lower().endswith(('.pdf', '.csv', '.xlsx', '.xls'))]) if os.path.exists(pdf_dir) else []
 
 print("=== STARTING BATCH VERIFICATION TESTING ===")
+print(f"Testing directory: {pdf_dir}")
 success_count = 0
+
 for filename in pdf_files:
     path = os.path.join(pdf_dir, filename)
     print(f"\n--- Processing: {filename} ---")

@@ -133,8 +133,64 @@ class BaseExtractor:
                 log_error(f"Error extracting text: {ex}")
                 raise ex
 
+    def read_spreadsheet_rows(self, file_path: str) -> list[list[str]]:
+        """
+        Reads CSV, XLS, or XLSX spreadsheet files into a list of row string lists.
+        Handles HTML tables masked as .xls (common in online bank statement downloads).
+        """
+        ext = os.path.splitext(file_path)[1].lower()
+        rows = []
+        
+        # 1. Try reading as standard CSV/Tab-delimited text first if .csv or .txt or .xls
+        if ext in [".csv", ".txt", ".xls"]:
+            try:
+                for enc in ["utf-8", "latin-1", "cp1252"]:
+                    try:
+                        with open(file_path, "r", encoding=enc) as f:
+                            lines = f.readlines()
+                        if lines:
+                            # Check if HTML table
+                            first_chunk = "".join(lines[:10]).lower()
+                            if "<html" in first_chunk or "<table" in first_chunk:
+                                try:
+                                    dfs = pd.read_html(file_path)
+                                    if dfs:
+                                        raw_df = dfs[0].fillna("")
+                                        return raw_df.astype(str).values.tolist()
+                                except Exception:
+                                    pass
+                            
+                            # Parse line delimiter
+                            sample = lines[0]
+                            delim = "\t" if "\t" in sample else ","
+                            import csv
+                            reader = csv.reader(lines, delimiter=delim)
+                            return [[str(c).strip() for c in row] for row in reader if any(row)]
+                    except UnicodeDecodeError:
+                        continue
+            except Exception as e:
+                log_warning(f"CSV/HTML read attempt failed for {file_path}: {e}")
+
+        # 2. Try pd.read_excel for xls/xlsx
+        try:
+            df = pd.read_excel(file_path, header=None)
+            df = df.fillna("")
+            return df.astype(str).values.tolist()
+        except Exception as e:
+            log_warning(f"Excel read attempt failed for {file_path}: {e}")
+
+        # 3. Fallback: try pd.read_csv with python engine
+        try:
+            df = pd.read_csv(file_path, header=None, on_bad_lines="skip")
+            df = df.fillna("")
+            return df.astype(str).values.tolist()
+        except Exception as ex:
+            log_error(f"Failed to read spreadsheet file {file_path}: {ex}")
+            return []
+
     def parse(self, pdf_path: str, password: str = None) -> tuple[dict, list[dict]]:
         """
         Main parser interface. Must be implemented by child classes.
         """
         raise NotImplementedError("Each bank extractor must implement the parse method.")
+

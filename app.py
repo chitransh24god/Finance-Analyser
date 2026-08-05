@@ -215,9 +215,11 @@ def show_login_page():
 # ===================================================
 def process_pdf_statement(file_bytes, filename, password=None):
     # Temp file write
-    temp_dir = r"C:\Users\ThinkPad\Downloads\excel_file_management\ABB_Analyzer\output"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    temp_dir = os.path.join(base_dir, "output")
     os.makedirs(temp_dir, exist_ok=True)
-    temp_path = os.path.join(temp_dir, "temp_uploaded_statement.pdf")
+    ext = os.path.splitext(filename)[1].lower() or ".pdf"
+    temp_path = os.path.join(temp_dir, f"temp_uploaded_statement{ext}")
     
     with open(temp_path, "wb") as f:
         f.write(file_bytes)
@@ -356,8 +358,8 @@ def show_app_interface():
 def render_dashboard_page():
     st.markdown("### 📊 Underwriting & Analysis Dashboard")
     
-    # PDF Upload Area
-    uploaded_file = st.file_uploader("Upload Bank Statement PDF (V1: HDFC Bank)", type=["pdf"])
+    # File Upload Area
+    uploaded_file = st.file_uploader("Upload Bank Statement File (PDF, CSV, XLS, XLSX)", type=["pdf", "csv", "xlsx", "xls"])
     
     if uploaded_file:
         # Check if file changed
