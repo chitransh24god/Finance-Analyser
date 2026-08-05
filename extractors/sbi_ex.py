@@ -12,7 +12,7 @@ class SbiExtractor(BaseExtractor):
         # Account Number
         acc_match = re.search(r"Account\s*Number\s*:\s*(\d+)", text, re.I)
         if not acc_match:
-            acc_match = re.search(r"Account\s*No(?:v|\.|\s|umber)?\s*:\s*(\d+)", text, re.I)
+            acc_match = re.search(r"Account\s*No(?:v|\.|\s|umber)?\s*:?\s*(\d+)", text, re.I)
         if acc_match:
             self.metadata["account_number"] = acc_match.group(1).strip()
 
@@ -45,6 +45,8 @@ class SbiExtractor(BaseExtractor):
         transactions = []
         current_tx = None
         
+        col_indices = {}
+
         try:
             with pdfplumber.open(pdf_path, password=password) as pdf:
                 for page in pdf.pages:
@@ -57,52 +59,100 @@ class SbiExtractor(BaseExtractor):
                             continue
 
                         headers = [str(col).lower().replace("\n", "").replace(" ", "").replace("/", "").replace(".", "") for col in table[0] if col is not None]
-                        
-                        if "txndate" in headers and "balance" in headers:
-                            date_idx = headers.index("txndate")
-                            desc_idx = headers.index("description") if "description" in headers else (headers.index("particulars") if "particulars" in headers else 2)
-                            ref_idx = -1
-                            for h_kw in ["refnochequeno", "refnochequeno", "refno", "chequeno"]:
-                                if h_kw in headers:
-                                    ref_idx = headers.index(h_kw)
+                        start_row = 1
+
+                        # Header detection for SBI table formats
+                        is_header = any("txndate" in h or "date" in h for h in headers) and any("balance" in h for h in headers)
+
+                        if is_header:
+                            date_idx = -1
+                            for idx, h in enumerate(headers):
+                                if "txndate" in h or "date" in h:
+                                    date_idx = idx
                                     break
 
-                            deb_idx = headers.index("debit") if "debit" in headers else 5
-                            cred_idx = headers.index("credit") if "credit" in headers else 6
-                            bal_idx = headers.index("balance")
+                            desc_idx = -1
+                            for idx, h in enumerate(headers):
+                                if "description" in h or "particulars" in h or "narration" in h:
+                                    desc_idx = idx
+                                    break
+                            if desc_idx == -1:
+                                desc_idx = 2
+
+                            ref_idx = -1
+                            for idx, h in enumerate(headers):
+                                if "ref" in h or "cheque" in h or "chq" in h:
+                                    ref_idx = idx
+                                    break
+
+                            deb_idx = -1
+                            cred_idx = -1
+                            for idx, h in enumerate(headers):
+                                if "debit" in h or "withdrawal" in h:
+                                    deb_idx = idx
+                                elif "credit" in h or "deposit" in h:
+                                    cred_idx = idx
+
+                            bal_idx = -1
+                            for idx, h in enumerate(headers):
+                                if "balance" in h:
+                                    bal_idx = idx
+                                    break
+
+                            col_indices = {
+                                "date": date_idx,
+                                "desc": desc_idx,
+                                "ref": ref_idx,
+                                "deb": deb_idx,
+                                "cred": cred_idx,
+                                "bal": bal_idx
+                            }
+                            start_row = 1
+                        elif col_indices and len(table[0]) >= 4:
+                            # Continuation table on subsequent pages without explicit header
+                            start_row = 0
+                        else:
+                            continue
+
+                        date_idx = col_indices["date"]
+                        desc_idx = col_indices["desc"]
+                        ref_idx = col_indices["ref"]
+                        deb_idx = col_indices["deb"]
+                        cred_idx = col_indices["cred"]
+                        bal_idx = col_indices["bal"]
+
+                        for row in table[start_row:]:
+                            if not row or len(row) <= max(date_idx, bal_idx):
+                                continue
                             
-                            for row in table[1:]:
-                                if not row or len(row) <= max(date_idx, bal_idx):
-                                    continue
-                                
-                                date_str = str(row[date_idx]).strip() if row[date_idx] is not None else ""
-                                desc_str = str(row[desc_idx]).strip() if row[desc_idx] is not None else ""
-                                ref_str = str(row[ref_idx]).strip() if (ref_idx != -1 and ref_idx < len(row) and row[ref_idx] is not None) else ""
-                                deb_str = str(row[deb_idx]).strip() if (deb_idx < len(row) and row[deb_idx] is not None) else ""
-                                cred_str = str(row[cred_idx]).strip() if (cred_idx < len(row) and row[cred_idx] is not None) else ""
-                                bal_str = str(row[bal_idx]).strip() if (bal_idx < len(row) and row[bal_idx] is not None) else ""
-                                
-                                clean_date = date_str.replace("\n", " ").strip()
-                                parsed_dt = self.parse_date(clean_date)
-                                
-                                full_desc = desc_str.replace("\n", " ").strip()
-                                if ref_str and ref_str != "nan":
-                                    full_desc += " Ref: " + ref_str.replace("\n", " ").strip()
-                                
-                                if parsed_dt:
-                                    if current_tx:
-                                        transactions.append(current_tx)
-                                    current_tx = {
-                                        "date": parsed_dt,
-                                        "narration": full_desc,
-                                        "debit": deb_str,
-                                        "credit": cred_str,
-                                        "balance": bal_str
-                                    }
-                                else:
-                                    if current_tx and desc_str:
-                                        current_tx["narration"] += " " + full_desc
-                                        current_tx["narration"] = re.sub(r"\s+", " ", current_tx["narration"]).strip()
+                            date_str = str(row[date_idx]).strip() if (date_idx < len(row) and row[date_idx] is not None) else ""
+                            desc_str = str(row[desc_idx]).strip() if (desc_idx < len(row) and row[desc_idx] is not None) else ""
+                            ref_str = str(row[ref_idx]).strip() if (ref_idx != -1 and ref_idx < len(row) and row[ref_idx] is not None) else ""
+                            deb_str = str(row[deb_idx]).strip() if (deb_idx != -1 and deb_idx < len(row) and row[deb_idx] is not None) else ""
+                            cred_str = str(row[cred_idx]).strip() if (cred_idx != -1 and cred_idx < len(row) and row[cred_idx] is not None) else ""
+                            bal_str = str(row[bal_idx]).strip() if (bal_idx < len(row) and row[bal_idx] is not None) else ""
+                            
+                            clean_date = date_str.replace("\n", " ").strip()
+                            parsed_dt = self.parse_date(clean_date)
+                            
+                            full_desc = desc_str.replace("\n", " ").strip()
+                            if ref_str and ref_str.lower() != "nan" and ref_str != "-":
+                                full_desc += " Ref: " + ref_str.replace("\n", " ").strip()
+                            
+                            if parsed_dt:
+                                if current_tx:
+                                    transactions.append(current_tx)
+                                current_tx = {
+                                    "date": parsed_dt,
+                                    "narration": full_desc,
+                                    "debit": deb_str,
+                                    "credit": cred_str,
+                                    "balance": bal_str
+                                }
+                            else:
+                                if current_tx and desc_str and desc_str.lower() != "txn date" and desc_str.lower() != "date":
+                                    current_tx["narration"] += " " + full_desc
+                                    current_tx["narration"] = re.sub(r"\s+", " ", current_tx["narration"]).strip()
         except Exception as e:
             log_warning(f"SBI PDF plumber table parse error, using text fallback: {e}")
 
@@ -110,11 +160,22 @@ class SbiExtractor(BaseExtractor):
             transactions.append(current_tx)
 
         # Fallback text parsing if pdfplumber returned no table transactions
-        if not transactions and text_p1:
-            transactions = self._parse_text_fallback(text_p1)
+        if not transactions:
+            full_text_all_pages = self._extract_all_text(pdf_path, password)
+            transactions = self._parse_text_fallback(full_text_all_pages)
                 
         cleaned_txs = self._finalize_transactions(transactions)
         return self.metadata, cleaned_txs
+
+    def _extract_all_text(self, pdf_path: str, password: str = None) -> str:
+        try:
+            full_text = ""
+            with pdfplumber.open(pdf_path, password=password) as pdf:
+                for page in pdf.pages:
+                    full_text += (page.extract_text() or "") + "\n"
+            return full_text
+        except Exception:
+            return ""
 
     def _parse_spreadsheet(self, file_path: str) -> tuple[dict, list[dict]]:
         rows = self.read_spreadsheet_rows(file_path)
@@ -124,7 +185,6 @@ class SbiExtractor(BaseExtractor):
         transactions = []
         current_tx = None
         
-        # Locate header row dynamically
         header_row_idx = -1
         col_map = {}
 
@@ -168,7 +228,7 @@ class SbiExtractor(BaseExtractor):
 
                 parsed_dt = self.parse_date(date_str)
                 full_desc = desc_str
-                if ref_str and ref_str.lower() != "nan":
+                if ref_str and ref_str.lower() != "nan" and ref_str != "-":
                     full_desc += " Ref: " + ref_str
 
                 if parsed_dt:
@@ -195,7 +255,6 @@ class SbiExtractor(BaseExtractor):
     def _parse_text_fallback(self, text: str) -> list[dict]:
         txs = []
         lines = text.split("\n")
-        # Line pattern: Date Description Debit Credit Balance
         pattern = re.compile(r"^(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}|\d{1,2}\s+[A-Za-z]{3}\s+\d{2,4})\s+(.+?)\s+([\d,]+\.\d{2})?\s*([\d,]+\.\d{2})?\s*([\d,]+\.\d{2})$")
         
         for line in lines:

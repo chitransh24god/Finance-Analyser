@@ -139,17 +139,17 @@ def calculate_monthly_abb(df: pd.DataFrame, start_date_str: str = None, end_date
         
         # 1 Month ABB (Latest Month ABB)
         latest_abb = df_monthly_abb.iloc[-1]["Monthly ABB"]
-        abb_summary["1M"] = round(latest_abb, 2)
+        abb_summary["1M"] = float(round(latest_abb, 2))
         
         # 3 Month ABB (Average of latest 3 monthly ABB values)
         if num_months >= 3:
             three_m_abb = df_monthly_abb.iloc[-3:]["Monthly ABB"].mean()
-            abb_summary["3M"] = round(three_m_abb, 2)
+            abb_summary["3M"] = float(round(three_m_abb, 2))
             
         # 6 Month ABB (Average of latest 6 monthly ABB values)
         if num_months >= 6:
             six_m_abb = df_monthly_abb.iloc[-6:]["Monthly ABB"].mean()
-            abb_summary["6M"] = round(six_m_abb, 2)
+            abb_summary["6M"] = float(round(six_m_abb, 2))
             
     log_info(f"ABB calculation complete. Summary: {abb_summary}")
     return df_monthly_abb, abb_summary
