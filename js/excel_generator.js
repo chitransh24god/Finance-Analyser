@@ -241,3 +241,11 @@ function styleDataGrid(ws, numericColIndexes, fontName, zebraColor) {
         });
     });
 }
+
+function exportExcel() {
+    if (typeof downloadReport === "function") {
+        downloadReport("cleaned_transactions");
+    } else {
+        alert("Excel generator module loading...");
+    }
+}

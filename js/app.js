@@ -1,3 +1,10 @@
+// Utility: Format numbers as Indian Rupee (₹) currency string
+function formatCurrencyJS(val) {
+    if (val === null || val === undefined || isNaN(val)) return "₹0.00";
+    const num = parseFloat(val) || 0.0;
+    return "₹" + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 // Global Application State
 const state = {
     loggedIn: false,
@@ -35,22 +42,24 @@ function initAuth() {
     }
 
     const loginForm = document.getElementById("login-form");
-    loginForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const passwordInput = document.getElementById("password").value;
-        const errorDiv = document.getElementById("login-error");
+    if (loginForm) {
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const passwordInput = document.getElementById("password").value;
+            const errorDiv = document.getElementById("login-error");
 
-        if (passwordInput === "Mybankloan.ai@2023") {
-            sessionStorage.setItem("mybankloan_auth", "true");
-            state.loggedIn = true;
-            errorDiv.classList.add("hidden");
-            document.getElementById("login-gate").classList.add("hidden");
-            document.getElementById("main-workspace").classList.remove("hidden");
-            showPage('analyzer');
-        } else {
-            errorDiv.classList.remove("hidden");
-        }
-    });
+            if (passwordInput === "Mybankloan.ai@2023") {
+                sessionStorage.setItem("mybankloan_auth", "true");
+                state.loggedIn = true;
+                errorDiv.classList.add("hidden");
+                document.getElementById("login-gate").classList.add("hidden");
+                document.getElementById("main-workspace").classList.remove("hidden");
+                showPage('analyzer');
+            } else {
+                errorDiv.classList.remove("hidden");
+            }
+        });
+    }
 
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
@@ -350,11 +359,6 @@ function renderTransactionsTable(txList) {
     });
 }
 
-function formatCurrencyJS(val) {
-    const num = parseFloat(val) || 0.0;
-    return "₹" + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 function drawLedgerChart(transactions) {
     const ctx = document.getElementById("ledgerChart");
     if (!ctx) return;
@@ -420,7 +424,7 @@ function drawAbbChart(monthlyAbb) {
             datasets: [{
                 label: 'Monthly Average Daily Balance (₹)',
                 data: abbValues,
-                backgroundColor: 'linear-gradient(135deg, #FF7B89, #FF5E7E)',
+                backgroundColor: 'rgba(255, 94, 126, 0.85)',
                 borderRadius: 12,
                 borderSkipped: false
             }]
