@@ -1,7 +1,7 @@
 // Global Application State
 const state = {
     loggedIn: false,
-    activePage: 'analyzer', // 'analyzer', 'calculator'
+    activePage: 'analyzer',
     activeSubtab: 'dashboard',
     activeCalculator: null,
     parsedData: null,
@@ -53,13 +53,15 @@ function initAuth() {
     });
 
     const logoutBtn = document.getElementById("logout-btn");
-    logoutBtn.addEventListener("click", () => {
-        sessionStorage.removeItem("mybankloan_auth");
-        state.loggedIn = false;
-        document.getElementById("login-gate").classList.remove("hidden");
-        document.getElementById("main-workspace").classList.add("hidden");
-        document.getElementById("password").value = "";
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+            sessionStorage.removeItem("mybankloan_auth");
+            state.loggedIn = false;
+            document.getElementById("login-gate").classList.remove("hidden");
+            document.getElementById("main-workspace").classList.add("hidden");
+            document.getElementById("password").value = "";
+        });
+    }
 }
 
 // ==========================================
@@ -84,50 +86,8 @@ function setActiveNav(activeBtn) {
 
 function showPage(pageId) {
     state.activePage = pageId;
-    
-    const sectionHub = document.getElementById("section-hub");
     const sectionAnalyzer = document.getElementById("section-analyzer");
-    const sectionCalculator = document.getElementById("section-calculator");
-
-    if (sectionHub) sectionHub.classList.add("hidden");
-    if (sectionAnalyzer) sectionAnalyzer.classList.add("hidden");
-    if (sectionCalculator) sectionCalculator.classList.add("hidden");
-
-    const pageTitle = document.getElementById("page-title");
-
-    if (pageId === 'analyzer' && sectionAnalyzer) {
-        sectionAnalyzer.classList.remove("hidden");
-        pageTitle.innerText = "Bank Statement Analyzer";
-    } else if (pageId === 'calculator' && sectionCalculator) {
-        sectionCalculator.classList.remove("hidden");
-        pageTitle.innerText = `${getCalculatorName(state.activeCalculator)}`;
-    }
-}
-
-function getCalculatorName(id) {
-    const names = {
-        emi: "EMI Calculator",
-        bond: "Bond Valuation",
-        sip: "SIP Calculator",
-        fd: "Fixed Deposit Calculator",
-        npv: "NPV & IRR Valuer"
-    };
-    return names[id] || "Calculator";
-}
-
-// ==========================================
-// CALCULATOR INTERFACES ROUTER
-// ==========================================
-function openCalculator(calcId) {
-    state.activeCalculator = calcId;
-    showPage('calculator');
-    renderCalculatorWorkspace(calcId);
-}
-
-function backToHub() {
-    const navHub = document.getElementById("nav-hub");
-    setActiveNav(navHub);
-    showPage('hub');
+    if (sectionAnalyzer) sectionAnalyzer.classList.remove("hidden");
 }
 
 // ==========================================
@@ -136,26 +96,22 @@ function backToHub() {
 function switchSubtab(subtabId) {
     state.activeSubtab = subtabId;
 
-    // Subtab links active styles
-    document.querySelectorAll("#analyzer-subtabs .subtab-item").forEach(item => {
-        item.classList.remove("active");
-    });
-    
-    // Find the clicked tab button
-    const buttons = document.querySelectorAll("#analyzer-subtabs .subtab-item");
-    buttons.forEach(btn => {
-        if (btn.innerText.toLowerCase().includes(subtabId === 'abb' ? 'abb' : subtabId)) {
+    document.querySelectorAll(".nav-pill-btn").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.getAttribute("onclick") && btn.getAttribute("onclick").includes(subtabId)) {
             btn.classList.add("active");
         }
     });
 
-    // Content containers toggling
     document.querySelectorAll(".subtab-content").forEach(c => {
         c.classList.add("hidden");
     });
-    document.getElementById(`subtab-${subtabId}`).classList.remove("hidden");
+    
+    const targetSection = document.getElementById(`subtab-${subtabId}`);
+    if (targetSection) {
+        targetSection.classList.remove("hidden");
+    }
 
-    // Redraw charts if switching back to dashboard or abb to ensure responsive dimensions are aligned
     if (state.parsedData) {
         if (subtabId === 'dashboard') {
             drawLedgerChart(state.parsedData.transactions);
@@ -170,6 +126,8 @@ function switchSubtab(subtabId) {
 // ==========================================
 function initUploadListener() {
     const fileInput = document.getElementById("statement-upload");
+    if (!fileInput) return;
+    
     fileInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -178,7 +136,6 @@ function initUploadListener() {
         
         const reader = new FileReader();
         reader.onload = function(event) {
-            // Store as Uint8Array so original file data is preserved
             state.pendingFileBytes = new Uint8Array(event.target.result);
             processUploadedStatement();
         };
@@ -192,7 +149,7 @@ async function processUploadedStatement(password = "") {
     const errorModal = document.getElementById("pdf-password-modal");
 
     if (!state.pendingFileBytes || state.pendingFileBytes.length === 0) {
-        alert("File memory buffer is empty. Please select your PDF statement again.");
+        alert("File buffer empty. Please select your PDF statement again.");
         return;
     }
 
@@ -201,7 +158,6 @@ async function processUploadedStatement(password = "") {
     updateLoaderStatus("Extracting character layouts...");
 
     try {
-        // Pass a fresh Uint8Array clone so PDF.js Web Worker never detaches state.pendingFileBytes
         const freshPdfBytes = new Uint8Array(state.pendingFileBytes);
         const extractedTextAndLayout = await extractTextAndLayoutFromPdf(freshPdfBytes, password);
         
@@ -218,7 +174,6 @@ async function processUploadedStatement(password = "") {
         }
 
         updateLoaderStatus("Running data integrity checks...");
-        // Sort and clean transaction rows
         const cleanedTransactions = rawTransactions.map(tx => ({
             Date: tx.Date,
             Particulars: tx.Particulars,
@@ -228,7 +183,6 @@ async function processUploadedStatement(password = "") {
         })).sort((a, b) => new Date(a.Date) - new Date(b.Date));
 
         updateLoaderStatus("Computing average daily balances (ABB)...");
-        // Calculate ABB
         const { monthly_abb, abb_summary } = calculateMonthlyAbbJS(
             cleanedTransactions, 
             metadata.start_date, 
@@ -236,14 +190,12 @@ async function processUploadedStatement(password = "") {
         );
 
         updateLoaderStatus("Evaluating credit risk variables...");
-        // Credit assessment
         const assessment = analyzeCreditProfileJS(
             cleanedTransactions, 
             monthly_abb, 
             abb_summary
         );
 
-        // Store calculations in global state
         state.parsedData = {
             metadata,
             transactions: cleanedTransactions,
@@ -252,7 +204,6 @@ async function processUploadedStatement(password = "") {
             assessment
         };
 
-        // Render sections
         renderAnalyzerDashboard(state.parsedData);
         switchSubtab('dashboard');
 
@@ -260,8 +211,6 @@ async function processUploadedStatement(password = "") {
         results.classList.remove("hidden");
         errorModal.classList.add("hidden");
         document.getElementById("pdf-password-error").classList.add("hidden");
-
-        // Clear file input cache
         document.getElementById("statement-upload").value = "";
 
     } catch (err) {
@@ -291,10 +240,10 @@ async function processUploadedStatement(password = "") {
 }
 
 function updateLoaderStatus(text) {
-    document.getElementById("loader-status").innerText = text;
+    const el = document.getElementById("loader-status");
+    if (el) el.innerText = text;
 }
 
-// Attach Enter Key listener for PDF Password Input
 document.addEventListener("DOMContentLoaded", () => {
     const pwdInput = document.getElementById("pdf-password-input");
     if (pwdInput) {
@@ -307,7 +256,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Password modal submits
 function submitPdfPassword() {
     const pwd = document.getElementById("pdf-password-input").value;
     if (!pwd) {
@@ -330,22 +278,22 @@ function closePasswordModal() {
 // RENDERING & VISUALIZATION LOGIC
 // ==========================================
 function renderAnalyzerDashboard(data) {
-    // 1. Metadata Headers
-    document.getElementById("meta-name").innerText = data.metadata.customer_name;
-    document.getElementById("meta-account").innerText = data.metadata.account_number;
-    document.getElementById("meta-bank").innerText = data.metadata.bank_name;
-    document.getElementById("meta-period").innerText = `${data.metadata.start_date} to ${data.metadata.end_date}`;
+    if (document.getElementById("meta-name")) document.getElementById("meta-name").innerText = data.metadata.customer_name;
+    if (document.getElementById("meta-account")) document.getElementById("meta-account").innerText = data.metadata.account_number;
+    if (document.getElementById("meta-bank")) document.getElementById("meta-bank").innerText = data.metadata.bank_name;
+    if (document.getElementById("meta-period")) document.getElementById("meta-period").innerText = `${data.metadata.start_date} to ${data.metadata.end_date}`;
 
-    // 2. Rolling ABB KPI Values
-    document.getElementById("abb-1m").innerText = formatCurrencyJS(data.abb_summary.abb_1m);
-    document.getElementById("abb-3m").innerText = formatCurrencyJS(data.abb_summary.abb_3m);
-    document.getElementById("abb-6m").innerText = formatCurrencyJS(data.abb_summary.abb_6m);
+    const abb1mStr = formatCurrencyJS(data.abb_summary.abb_1m);
+    const abb3mStr = formatCurrencyJS(data.abb_summary.abb_3m);
+    const abb6mStr = formatCurrencyJS(data.abb_summary.abb_6m);
 
-    // 3. Flow metrics aggregates
+    if (document.getElementById("abb-1m")) document.getElementById("abb-1m").innerText = abb1mStr;
+    if (document.getElementById("summary-abb-1m")) document.getElementById("summary-abb-1m").innerText = abb1mStr;
+    if (document.getElementById("abb-3m")) document.getElementById("abb-3m").innerText = abb3mStr;
+    if (document.getElementById("abb-6m")) document.getElementById("abb-6m").innerText = abb6mStr;
+
     let totalCredits = 0;
     let totalDebits = 0;
-    let maxBal = -Infinity;
-    let minBal = Infinity;
     let crCount = 0;
     let drCount = 0;
 
@@ -354,86 +302,36 @@ function renderAnalyzerDashboard(data) {
         totalDebits += tx.Debit;
         if (tx.Credit > 0) crCount++;
         if (tx.Debit > 0) drCount++;
-        if (tx.Balance > maxBal) maxBal = tx.Balance;
-        if (tx.Balance < minBal) minBal = tx.Balance;
     });
 
-    const latestBal = data.transactions[data.transactions.length - 1].Balance;
+    if (document.getElementById("kpi-total-credits")) document.getElementById("kpi-total-credits").innerText = formatCurrencyJS(totalCredits);
+    if (document.getElementById("kpi-credit-count")) document.getElementById("kpi-credit-count").innerHTML = `<i class="fa-solid fa-list-check"></i> ${crCount} credit entries detected`;
+    
+    if (document.getElementById("kpi-total-debits")) document.getElementById("kpi-total-debits").innerText = formatCurrencyJS(totalDebits);
+    if (document.getElementById("kpi-debit-count")) document.getElementById("kpi-debit-count").innerHTML = `<i class="fa-solid fa-list-check"></i> ${drCount} debit entries detected`;
 
-    document.getElementById("flow-credits").innerText = formatCurrencyJS(totalCredits);
-    document.getElementById("flow-debits").innerText = formatCurrencyJS(totalDebits);
-    document.getElementById("flow-highest").innerText = formatCurrencyJS(maxBal);
-    document.getElementById("flow-lowest").innerText = formatCurrencyJS(minBal);
-    document.getElementById("flow-latest").innerText = formatCurrencyJS(latestBal);
+    if (document.getElementById("side-total-credit")) document.getElementById("side-total-credit").innerText = `+${formatCurrencyJS(totalCredits)}`;
+    if (document.getElementById("side-total-debit")) document.getElementById("side-total-debit").innerText = `-${formatCurrencyJS(totalDebits)}`;
 
-    // 4. Fill Transactions Subtab (Init table rows)
     renderTransactionsTable(data.transactions);
 
-    // 5. Fill Monthly ABB Targets Subtab Table
-    const abbTbody = document.querySelector("#abb-months-table tbody");
-    abbTbody.innerHTML = "";
-    data.monthly_abb.forEach(row => {
-        abbTbody.innerHTML += `
-            <tr class="hover:bg-gray-50 border-b">
-                <td class="p-4 font-bold text-gray-900">${row.monthName}</td>
-                <td class="p-4 text-right">${formatCurrencyJS(row.bal5)}</td>
-                <td class="p-4 text-right">${formatCurrencyJS(row.bal10)}</td>
-                <td class="p-4 text-right">${formatCurrencyJS(row.bal15)}</td>
-                <td class="p-4 text-right">${formatCurrencyJS(row.bal20)}</td>
-                <td class="p-4 text-right">${formatCurrencyJS(row.bal25)}</td>
-                <td class="p-4 text-right">${formatCurrencyJS(row.balEnd)}</td>
-                <td class="p-4 text-right font-bold text-blue-600 bg-blue-50/20">${formatCurrencyJS(row.abb)}</td>
-            </tr>
-        `;
-    });
+    if (document.getElementById("credit-score-badge")) {
+        document.getElementById("credit-score-badge").innerText = `${data.assessment.overall_grade} (${data.assessment.abb_grade})`;
+    }
+    if (document.getElementById("credit-risk-desc")) {
+        document.getElementById("credit-risk-desc").innerText = data.assessment.verdict;
+    }
+    if (document.getElementById("loan-eligibility-val")) {
+        const estLoan = data.abb_summary.abb_6m * 12;
+        document.getElementById("loan-eligibility-val").innerText = formatCurrencyJS(estLoan);
+    }
 
-    // 6. Fill Underwriting Assessment Suitability Subtab
-    // Days covered
-    const startDate = new Date(data.metadata.start_date);
-    const endDate = new Date(data.metadata.end_date);
-    const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-
-    document.getElementById("assess-days").innerText = `${totalDays} Days`;
-    document.getElementById("assess-credits").innerText = formatCurrencyJS(totalCredits);
-    document.getElementById("assess-debits").innerText = formatCurrencyJS(totalDebits);
-    document.getElementById("assess-count").innerText = `${crCount} Credits / ${drCount} Debits`;
-    document.getElementById("assess-highest").innerText = formatCurrencyJS(maxBal);
-    document.getElementById("assess-lowest").innerText = formatCurrencyJS(minBal);
-    document.getElementById("assess-latest").innerText = formatCurrencyJS(latestBal);
-
-    // Underwriting verdicts
-    document.getElementById("assess-val-abb").innerText = data.assessment.abb_grade;
-    styleVerdictBadge("badge-assess-abb", data.assessment.abb_grade, data.assessment.abb_badge);
-
-    document.getElementById("assess-val-stability").innerText = data.assessment.stability_grade;
-    styleVerdictBadge("badge-assess-stability", data.assessment.stability_grade, data.assessment.stability_badge);
-
-    document.getElementById("assess-val-liquidity").innerText = data.assessment.liquidity_grade;
-    styleVerdictBadge("badge-assess-liquidity", data.assessment.liquidity_grade, data.assessment.liquidity_badge);
-
-    // Overall Rating Card
-    document.getElementById("assess-val-overall").innerText = data.assessment.overall_grade;
-    styleVerdictBadge("badge-assess-overall", data.assessment.overall_grade, data.assessment.overall_badge);
-    
-    const overallCard = document.getElementById("status-card-overall");
-    overallCard.className = `border-2 rounded-xl p-4 flex items-center justify-between ${data.assessment.overall_card}`;
-
-    // Underwriting text commentary
-    document.getElementById("assess-verdict-note").innerText = data.assessment.verdict;
-
-    // Draw Dashboard Ledger Line chart
     drawLedgerChart(data.transactions);
 }
 
-function styleVerdictBadge(elementId, gradeText, badgeClass) {
-    const badge = document.getElementById(elementId);
-    badge.innerText = gradeText;
-    badge.className = `px-2.5 py-1 rounded-full text-xs font-bold ${badgeClass}`;
-}
-
-// Render dynamic transactions grid
 function renderTransactionsTable(txList) {
-    const tbody = document.querySelector("#transactions-table tbody");
+    const tbody = document.querySelector("#ledger-table-body");
+    if (!tbody) return;
     tbody.innerHTML = "";
 
     txList.forEach(tx => {
@@ -441,78 +339,47 @@ function renderTransactionsTable(txList) {
         const creditText = tx.Credit > 0 ? formatCurrencyJS(tx.Credit) : "-";
 
         tbody.innerHTML += `
-            <tr class="hover:bg-gray-50 border-b">
-                <td class="p-4 font-medium text-gray-500 whitespace-nowrap">${tx.Date}</td>
-                <td class="p-4 text-gray-900">${tx.Particulars}</td>
-                <td class="p-4 text-right text-red-600 font-semibold">${debitText}</td>
-                <td class="p-4 text-right text-green-700 font-semibold">${creditText}</td>
-                <td class="p-4 text-right text-gray-900 font-bold">${formatCurrencyJS(tx.Balance)}</td>
+            <tr>
+                <td class="whitespace-nowrap font-medium text-slate-500">${tx.Date}</td>
+                <td class="font-bold text-slate-800">${tx.Particulars}</td>
+                <td class="text-right text-rose-500 font-bold">${debitText}</td>
+                <td class="text-right text-emerald-600 font-bold">${creditText}</td>
+                <td class="text-right text-slate-900 font-black">${formatCurrencyJS(tx.Balance)}</td>
             </tr>
         `;
     });
-
-    document.getElementById("table-stats-footer").innerText = `Showing ${txList.length} of ${state.parsedData.transactions.length} transactions`;
 }
 
-// Apply searches & limits
-function applyTxFilters() {
-    const query = document.getElementById("tx-search-input").value.toLowerCase();
-    const minVal = parseFloat(document.getElementById("tx-filter-min").value) || 0.0;
-    const maxVal = parseFloat(document.getElementById("tx-filter-max").value) || Infinity;
-
-    const filtered = state.parsedData.transactions.filter(tx => {
-        const matchesQuery = tx.Particulars.toLowerCase().includes(query);
-        const maxAmount = Math.max(tx.Debit, tx.Credit);
-        const matchesAmount = maxAmount >= minVal && maxAmount <= maxVal;
-        return matchesQuery && matchesAmount;
-    });
-
-    renderTransactionsTable(filtered);
+function formatCurrencyJS(val) {
+    const num = parseFloat(val) || 0.0;
+    return "₹" + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function resetTxFilters() {
-    document.getElementById("tx-search-input").value = "";
-    document.getElementById("tx-filter-min").value = "";
-    document.getElementById("tx-filter-max").value = "";
-    renderTransactionsTable(state.parsedData.transactions);
-}
-
-// ==========================================
-// CHART DRAW LOOPS (Chart.js Configs)
-// ==========================================
 function drawLedgerChart(transactions) {
+    const ctx = document.getElementById("ledgerChart");
+    if (!ctx) return;
+
     if (ledgerChartInstance) {
         ledgerChartInstance.destroy();
     }
 
-    const ctx = document.getElementById("ledger-trend-chart").getContext("2d");
-    
-    // Setup clean labels and values (limits display density if transaction list is very large)
-    let step = 1;
-    if (transactions.length > 300) {
-        step = Math.ceil(transactions.length / 150);
-    }
-    
-    const chartLabels = [];
-    const chartValues = [];
-    for (let i = 0; i < transactions.length; i += step) {
-        chartLabels.push(transactions[i].Date);
-        chartValues.push(transactions[i].Balance);
-    }
+    const labels = transactions.map(tx => tx.Date);
+    const dataPoints = transactions.map(tx => tx.Balance);
 
     ledgerChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: chartLabels,
+            labels: labels,
             datasets: [{
-                label: 'Account Ledger Balance',
-                data: chartValues,
-                borderColor: '#2563EB',
-                borderWidth: 2,
-                backgroundColor: 'rgba(37, 99, 235, 0.03)',
+                label: 'Running Balance (₹)',
+                data: dataPoints,
+                borderColor: '#FF5E7E',
+                backgroundColor: 'rgba(255, 94, 126, 0.08)',
                 fill: true,
-                pointRadius: chartLabels.length > 50 ? 0 : 2,
-                tension: 0.1
+                tension: 0.4,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#FF5E7E'
             }]
         },
         options: {
@@ -522,32 +389,40 @@ function drawLedgerChart(transactions) {
                 legend: { display: false }
             },
             scales: {
-                x: { grid: { display: false } },
-                y: { ticks: { callback: v => '₹' + v.toLocaleString() } }
+                x: {
+                    grid: { display: false },
+                    ticks: { maxTicksLimit: 8, font: { size: 11, family: 'Outfit' } }
+                },
+                y: {
+                    grid: { color: 'rgba(240, 220, 226, 0.4)' },
+                    ticks: { font: { size: 11, family: 'Outfit' } }
+                }
             }
         }
     });
 }
 
 function drawAbbChart(monthlyAbb) {
+    const ctx = document.getElementById("abbChart");
+    if (!ctx) return;
+
     if (abbChartInstance) {
         abbChartInstance.destroy();
     }
 
-    const ctx = document.getElementById("abb-history-chart").getContext("2d");
-    const labels = monthlyAbb.map(row => row.monthName);
-    const values = monthlyAbb.map(row => row.abb);
+    const labels = monthlyAbb.map(m => m.monthName);
+    const abbValues = monthlyAbb.map(m => m.abb);
 
     abbChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Monthly ABB (₹)',
-                data: values,
-                backgroundColor: '#3B82F6',
-                hoverBackgroundColor: '#2563EB',
-                borderRadius: 8
+                label: 'Monthly Average Daily Balance (₹)',
+                data: abbValues,
+                backgroundColor: 'linear-gradient(135deg, #FF7B89, #FF5E7E)',
+                borderRadius: 12,
+                borderSkipped: false
             }]
         },
         options: {
@@ -557,8 +432,14 @@ function drawAbbChart(monthlyAbb) {
                 legend: { display: false }
             },
             scales: {
-                x: { grid: { display: false } },
-                y: { ticks: { callback: v => '₹' + v.toLocaleString() } }
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11, family: 'Outfit' } }
+                },
+                y: {
+                    grid: { color: 'rgba(240, 220, 226, 0.4)' },
+                    ticks: { font: { size: 11, family: 'Outfit' } }
+                }
             }
         }
     });
