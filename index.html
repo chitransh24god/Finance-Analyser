@@ -63,7 +63,7 @@
     <!-- ========================================== -->
     <div id="main-workspace" class="hidden app-frame-container flex z-10 relative">
         
-        <!-- Left Rounded Sidebar -->
+        <!-- Left Rounded Sidebar (Line-by-Line Working Tabs) -->
         <aside class="w-72 sidebar-container flex-shrink-0 flex flex-col justify-between">
             <div class="space-y-6">
                 <!-- Brand Badge -->
@@ -87,50 +87,85 @@
                 </div>
 
                 <!-- Summary Status Widget (Income/Expenses) -->
-                <div class="bg-rose-50/40 rounded-2xl p-4 border border-rose-100/60 space-y-3">
+                <div class="bg-rose-50/40 rounded-2xl p-4 border border-rose-100/60 space-y-2.5">
                     <div class="flex items-center justify-between text-xs">
                         <span class="flex items-center gap-2 font-semibold text-slate-500">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Total Credits
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Total Credits
                         </span>
                         <span id="side-total-credit" class="font-extrabold text-slate-800">+₹0.00</span>
                     </div>
                     <div class="flex items-center justify-between text-xs">
                         <span class="flex items-center gap-2 font-semibold text-slate-500">
-                            <span class="w-2 h-2 rounded-full bg-rose-400"></span> Total Debits
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span> Total Debits
                         </span>
                         <span id="side-total-debit" class="font-extrabold text-slate-800">-₹0.00</span>
                     </div>
                 </div>
 
-                <!-- Quick Menu Tile Grid -->
+                <!-- Vertical Line-by-Line Sidebar Working Tabs -->
                 <div class="space-y-3">
-                    <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider px-1">Quick Menu</div>
-                    <div class="icon-tile-grid">
-                        <div class="icon-tile active">
-                            <i class="fa-solid fa-chart-line text-lg text-rose-500"></i>
-                            <span>Analyzer</span>
-                        </div>
-                        <div class="icon-tile" onclick="switchSubtab('ledger')">
-                            <i class="fa-solid fa-receipt text-lg text-purple-400"></i>
-                            <span>Ledger</span>
-                        </div>
-                        <div class="icon-tile" onclick="switchSubtab('abb')">
-                            <i class="fa-solid fa-chart-column text-lg text-blue-400"></i>
-                            <span>ABB</span>
-                        </div>
-                        <div class="icon-tile" onclick="switchSubtab('credit')">
-                            <i class="fa-solid fa-shield-halved text-lg text-emerald-400"></i>
-                            <span>Credit</span>
-                        </div>
-                        <div class="icon-tile" onclick="exportExcel()">
-                            <i class="fa-solid fa-file-excel text-lg text-amber-400"></i>
-                            <span>Excel</span>
-                        </div>
-                        <div class="icon-tile" onclick="alert('System Settings: Active Version 3.4')">
-                            <i class="fa-solid fa-sliders text-lg text-slate-400"></i>
-                            <span>Settings</span>
-                        </div>
-                    </div>
+                    <div class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider px-1">Navigation Menu</div>
+                    <nav class="space-y-1.5">
+                        <button onclick="switchSubtab('dashboard')" class="sidebar-tab-btn active w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                </div>
+                                <span>Dashboard</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </button>
+                        
+                        <button onclick="switchSubtab('ledger')" class="sidebar-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-slate-600 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-receipt"></i>
+                                </div>
+                                <span>Transactions Ledger</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </button>
+
+                        <button onclick="switchSubtab('abb')" class="sidebar-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-slate-600 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-chart-column"></i>
+                                </div>
+                                <span>ABB Analysis</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </button>
+
+                        <button onclick="switchSubtab('credit')" class="sidebar-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-slate-600 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <span>Credit Risk AI</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </button>
+
+                        <button onclick="exportExcel()" class="sidebar-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-slate-600 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                </div>
+                                <span>Export Excel</span>
+                            </div>
+                            <i class="fa-solid fa-download text-[10px] text-slate-300"></i>
+                        </button>
+
+                        <button onclick="alert('System Settings: Active Version 3.4')" class="sidebar-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-slate-600 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-sliders"></i>
+                                </div>
+                                <span>Settings</span>
+                            </div>
+                            <i class="fa-solid fa-gear text-[10px] text-slate-300"></i>
+                        </button>
+                    </nav>
                 </div>
             </div>
 
@@ -209,64 +244,22 @@
                 <!-- Main Analyzer Content Workspace -->
                 <div id="analyzer-results" class="space-y-8">
                     
-                    <!-- Expanded Upload Statement Drag & Drop Dropzone -->
-                    <div class="aesthetic-card bg-gradient-to-r from-rose-500/10 via-pink-500/5 to-purple-500/10 border-2 border-dashed border-rose-300/80 rounded-3xl p-6 text-center hover:border-rose-500 hover:shadow-xl hover:shadow-rose-500/10 transition-all duration-300 relative group cursor-pointer">
-                        <label for="statement-upload" class="cursor-pointer flex flex-col items-center justify-center space-y-2.5">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 text-white flex items-center justify-center text-xl shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-all duration-300">
+                    <!-- Expanded Prominent Upload Statement Drag & Drop Dropzone Row -->
+                    <div class="aesthetic-card bg-gradient-to-r from-rose-500/10 via-pink-500/5 to-purple-500/10 border-2 border-dashed border-rose-300/80 rounded-3xl p-8 text-center hover:border-rose-500 hover:shadow-xl hover:shadow-rose-500/10 transition-all duration-300 relative group cursor-pointer">
+                        <label for="statement-upload" class="cursor-pointer flex flex-col items-center justify-center space-y-3">
+                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-rose-500/30 group-hover:scale-110 transition-all duration-300">
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
                             </div>
                             <div>
-                                <h3 class="font-extrabold text-slate-900 text-base">Upload Bank Statement PDF</h3>
-                                <p class="text-xs text-slate-500">Drag and drop your bank statement PDF here, or click to browse files</p>
+                                <h3 class="font-extrabold text-slate-900 text-lg">Upload Bank Statement PDF</h3>
+                                <p class="text-xs text-slate-500 mt-1">Drag and drop your bank statement PDF here, or click to browse files</p>
                             </div>
-                            <div class="flex items-center gap-2 pt-1">
+                            <div class="flex items-center gap-2 pt-2">
                                 <span class="text-[11px] font-bold text-rose-600 bg-white/80 px-3 py-1 rounded-full border border-rose-200/80 shadow-sm">
                                     Supported Banks: SBI, HDFC, ICICI, Axis, IDFC, Canara, Kotak, PNB, BOB, Union, IndusInd, CBI, BOI, Yes, Kalupur
                                 </span>
                             </div>
                         </label>
-                    </div>
-
-                    <!-- 3 Vibrant Hero Aesthetic Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Hero Card 1: 1M ABB -->
-                        <div class="hero-metric-card hero-card-coral">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="badge-white-icon"><i class="fa-solid fa-vault"></i></div>
-                                <span class="text-xs font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">1-Month ABB</span>
-                            </div>
-                            <div class="text-xs font-semibold opacity-90">Average Daily Balance</div>
-                            <div id="abb-1m" class="text-3xl font-black mt-1">₹0.00</div>
-                            <div class="text-[11px] opacity-80 mt-3 font-medium flex items-center gap-1">
-                                <i class="fa-solid fa-circle-check"></i> Evaluated from monthly ledgers
-                            </div>
-                        </div>
-
-                        <!-- Hero Card 2: Total Credits -->
-                        <div class="hero-metric-card hero-card-purple">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="badge-white-icon"><i class="fa-solid fa-arrow-down-left text-emerald-300"></i></div>
-                                <span class="text-xs font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">Total Inflows</span>
-                            </div>
-                            <div class="text-xs font-semibold opacity-90">Total Credit Volume</div>
-                            <div id="kpi-total-credits" class="text-3xl font-black mt-1">₹0.00</div>
-                            <div id="kpi-credit-count" class="text-[11px] opacity-80 mt-3 font-medium flex items-center gap-1">
-                                <i class="fa-solid fa-list-check"></i> 0 credit entries detected
-                            </div>
-                        </div>
-
-                        <!-- Hero Card 3: Total Debits -->
-                        <div class="hero-metric-card hero-card-cyan">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="badge-white-icon"><i class="fa-solid fa-arrow-up-right text-amber-200"></i></div>
-                                <span class="text-xs font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">Total Outflows</span>
-                            </div>
-                            <div class="text-xs font-semibold opacity-90">Total Debit Volume</div>
-                            <div id="kpi-total-debits" class="text-3xl font-black mt-1">₹0.00</div>
-                            <div id="kpi-debit-count" class="text-[11px] opacity-80 mt-3 font-medium flex items-center gap-1">
-                                <i class="fa-solid fa-list-check"></i> 0 debit entries detected
-                            </div>
-                        </div>
                     </div>
 
                     <!-- SUBTAB CONTAINER -->

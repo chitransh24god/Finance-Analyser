@@ -112,6 +112,13 @@ function switchSubtab(subtabId) {
         }
     });
 
+    document.querySelectorAll(".sidebar-tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.getAttribute("onclick") && btn.getAttribute("onclick").includes(subtabId)) {
+            btn.classList.add("active");
+        }
+    });
+
     document.querySelectorAll(".subtab-content").forEach(c => {
         c.classList.add("hidden");
     });
