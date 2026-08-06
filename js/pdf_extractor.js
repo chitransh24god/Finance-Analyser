@@ -2,19 +2,33 @@
 
 /**
  * Loads a PDF file and extracts text + coordinates page-by-page.
+ * Handles encrypted / password-protected PDF files cleanly.
  */
 async function extractTextAndLayoutFromPdf(pdfBytes, password = "") {
     let pdfDoc = null;
     try {
         const bytesForPdfjs = (pdfBytes instanceof Uint8Array) ? new Uint8Array(pdfBytes) : (pdfBytes && pdfBytes.slice ? new Uint8Array(pdfBytes.slice(0)) : pdfBytes);
+        
         const loadingTask = pdfjsLib.getDocument({
             data: bytesForPdfjs,
-            password: password
+            password: password || "",
+            onPassword: function(updatePassword, reason) {
+                if (password) {
+                    updatePassword(password);
+                } else {
+                    const err = new Error("This PDF is password-protected. Please enter the password.");
+                    err.name = "PasswordException";
+                    throw err;
+                }
+            }
         });
         pdfDoc = await loadingTask.promise;
     } catch (err) {
-        if (err.name === "PasswordException" || (err.message && err.message.toLowerCase().includes("password"))) {
-            throw new Error("password");
+        const errStr = (err && (err.message || err.toString()) || "").toLowerCase();
+        if (err.name === "PasswordException" || errStr.includes("password") || errStr.includes("encrypted") || errStr.includes("decrypt")) {
+            const pwdErr = new Error("This PDF is password-protected. Please enter the password.");
+            pwdErr.name = "PasswordException";
+            throw pwdErr;
         }
         throw err;
     }
@@ -223,7 +237,6 @@ function standardizeDate(dateStr) {
     if (!dateStr) return "";
     const cleanStr = dateStr.trim();
 
-    // Standard YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
         return cleanStr;
     }
@@ -814,7 +827,6 @@ function parseViaRegex(pdfData, dateRegex) {
             const trailingText = lineText.substring(idx + bestDateStr.length).trim();
             const numbers = trailingText.match(/[\d,]+(?:\.\d{1,2})?(?:\s*(?:cr|dr))?/gi) || [];
 
-            // Filter out numbers that are likely dates, years or single digits
             const validNumbers = numbers.filter(n => {
                 const cleaned = cleanAmountJS(n);
                 return cleaned > 0 || n.includes(".");

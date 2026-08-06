@@ -275,14 +275,16 @@ async function processUploadedStatement(password = "") {
         const errName = err.name || "";
         
         if (errName === "PasswordException" || errMsg.includes("password") || errMsg.includes("decrypt") || errMsg.includes("encrypted")) {
-            // Trigger password modal
             errorModal.classList.remove("hidden");
             const pwdInput = document.getElementById("pdf-password-input");
+            const errorDiv = document.getElementById("pdf-password-error");
+            
             if (password) {
-                // Was tried with password but failed -> show error text
-                document.getElementById("pdf-password-error").classList.remove("hidden");
+                errorDiv.innerText = "Incorrect password. Please enter the valid PDF password.";
+                errorDiv.classList.remove("hidden");
             } else {
-                document.getElementById("pdf-password-error").classList.add("hidden");
+                errorDiv.innerText = "This bank statement is password protected. Please enter the password.";
+                errorDiv.classList.remove("hidden");
             }
             pwdInput.focus();
             pwdInput.select();
