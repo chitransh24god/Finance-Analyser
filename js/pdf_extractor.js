@@ -112,7 +112,7 @@ async function routeAndExtractTransactions(pdfData, filename, selectedBank = "au
             bankName = "HDFC Bank"; parser = parseHdfc;
         } else if (filenameLower.includes("icici") || filenameLower.includes("ic bank") || textLower.includes("icici bank") || textLower.includes("icic")) {
             bankName = "ICICI Bank"; parser = parseIcici;
-        } else if (filenameLower.includes("sbi") || filenameLower.includes("state bank") || textLower.includes("state bank of india") || textLower.includes("sbi")) {
+        } else if (filenameLower.includes("sbi") || filenameLower.includes("state bank") || textLower.includes("state bank of india") || textLower.includes("sbin0")) {
             bankName = "State Bank of India (SBI)"; parser = parseSbi;
         } else if (filenameLower.includes("axis") || filenameLower.includes("axix") || textLower.includes("axis bank") || textLower.includes("axis account")) {
             bankName = "Axis Bank"; parser = parseAxis;
@@ -183,7 +183,7 @@ function extractMetadata(text, bankName) {
     }
     if (accMatch) meta.account_number = accMatch[1].trim();
 
-    let periodMatch = text.match(/(?:Account\s*)?Statement\s*from\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{2}[-\/\.]\d{2}[-\/\.]\d{2,4})\s*to\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{2}[-\/\.]\d{2}[-\/\.]\d{2,4})/i);
+    let periodMatch = text.match(/(?:Account\s*)?Statement\s*from\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})\s*to\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})/i);
     if (!periodMatch) {
         periodMatch = text.match(/Period\s*:\s*(\d{2}-\d{2}-\d{4})\s+(\d{2}-\d{2}-\d{4})/i);
     }
@@ -191,7 +191,7 @@ function extractMetadata(text, bankName) {
         periodMatch = text.match(/Statement Period\s*:?\s*(\d{4}-\d{2}-\d{2})\s*to\s*(\d{4}-\d{2}-\d{2})/i);
     }
     if (!periodMatch) {
-        periodMatch = text.match(/From\s*(\d{2}[-\/]\d{2}[-\/]\d{4})\s*To\s*(\d{2}[-\/]\d{2}[-\/]\d{4})/i);
+        periodMatch = text.match(/From\s*(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})\s*To\s*(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})/i);
     }
     if (periodMatch) {
         meta.start_date = standardizeDate(periodMatch[1]);
@@ -222,37 +222,29 @@ function extractMetadata(text, bankName) {
 function standardizeDate(dateStr) {
     if (!dateStr) return "";
     const cleanStr = dateStr.trim();
+
+    // Standard YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) {
+        return cleanStr;
+    }
     
+    const months = { jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06", jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12" };
+
     const formats = [
-        { regex: /^\d{2}\/\d{2}\/\d{4}$/, parse: s => s.split("/").reverse().join("-") },
-        { regex: /^\d{2}\-\d{2}\-\d{4}$/, parse: s => s.split("-").reverse().join("-") },
-        { regex: /^\d{2}\.\d{2}\.\d{4}$/, parse: s => s.split(".").reverse().join("-") },
-        { regex: /^\d{2}\/\d{2}\/\d{2}$/, parse: s => {
-            const parts = s.split("/");
-            return `20${parts[2]}-${parts[1]}-${parts[0]}`;
-        }},
-        { regex: /^\d{2}\-\d{2}\-\d{2}$/, parse: s => {
-            const parts = s.split("-");
-            return `20${parts[2]}-${parts[1]}-${parts[0]}`;
-        }},
-        { regex: /^\d{1,2}\s+[A-Za-z]{3}\s+\d{4}$/, parse: s => {
-            const months = { jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06", jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12" };
-            const parts = s.split(/\s+/);
-            const dd = parts[0].padStart(2, "0");
-            const mm = months[parts[1].toLowerCase()] || "01";
-            return `${parts[2]}-${mm}-${dd}`;
-        }},
-        { regex: /^\d{2}\-[A-Za-z]{3}\-\d{4}$/, parse: s => {
-            const months = { jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06", jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12" };
-            const parts = s.split("-");
-            const mm = months[parts[1].toLowerCase()] || "01";
-            return `${parts[2]}-${mm}-${parts[0]}`;
-        }}
+        { regex: /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, parse: m => `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` },
+        { regex: /^(\d{1,2})\-(\d{1,2})\-(\d{4})$/, parse: m => `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` },
+        { regex: /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/, parse: m => `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` },
+        { regex: /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/, parse: m => `20${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` },
+        { regex: /^(\d{1,2})\-(\d{1,2})\-(\d{2})$/, parse: m => `20${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}` },
+        { regex: /^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{4})$/, parse: m => `${m[3]}-${months[m[2].substring(0,3).toLowerCase()] || "01"}-${m[1].padStart(2, '0')}` },
+        { regex: /^(\d{1,2})\-([A-Za-z]{3,9})\-(\d{4})$/, parse: m => `${m[3]}-${months[m[2].substring(0,3).toLowerCase()] || "01"}-${m[1].padStart(2, '0')}` },
+        { regex: /^(\d{1,2})\-([A-Za-z]{3,9})\-(\d{2})$/, parse: m => `20${m[3]}-${months[m[2].substring(0,3).toLowerCase()] || "01"}-${m[1].padStart(2, '0')}` }
     ];
 
     for (const fmt of formats) {
-        if (fmt.regex.test(cleanStr)) {
-            return fmt.parse(cleanStr);
+        const m = cleanStr.match(fmt.regex);
+        if (m) {
+            return fmt.parse(m);
         }
     }
     try {
@@ -336,7 +328,7 @@ function parseHdfc(pdfData) {
         });
         return transactions;
     } else {
-        const dateRegex = /(\d{2}\-[A-Za-z]{3}\-\d{2,4})/g;
+        const dateRegex = /(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})|(\d{1,2}\-[A-Za-z]{3,9}\-\d{2,4})/g;
         return parseViaRegex(pdfData, dateRegex);
     }
 }
@@ -355,13 +347,13 @@ function parseSbi(pdfData) {
         return txs;
     }
     console.log("SBI spatial parser returned 0 rows. Using SBI multi-date regex fallback.");
-    const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})|(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})|(\d{1,2}\-[A-Za-z]{3}\-\d{2,4})/g;
+    const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})|(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})|(\d{1,2}\-[A-Za-z]{3,9}\-\d{2,4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
 
 function parseSbiSpatial(pdfData) {
     const transactions = [];
-    const dateElementRegex = /^\d{1,2}\s+[A-Za-z]{3}$|^\d{1,2}$|^[A-Za-z]{3}$|^\d{4}$|^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$/;
+    const dateElementRegex = /^\d{1,2}\s+[A-Za-z]{3,9}$|^\d{1,2}$|^[A-Za-z]{3,9}$|^\d{4}$|^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$|^\d{1,2}\-[A-Za-z]{3,9}\-\d{2,4}$/;
     
     pdfData.pages.forEach(page => {
         const words = page.items.map(item => ({
@@ -374,7 +366,7 @@ function parseSbiSpatial(pdfData) {
         
         const dateAnchors = [];
         words.forEach(w => {
-            if (w.x < 100 && dateElementRegex.test(w.text)) {
+            if (w.x < 150 && dateElementRegex.test(w.text)) {
                 dateAnchors.push(w);
             }
         });
@@ -458,7 +450,7 @@ function parseSbiSpatial(pdfData) {
                 const text = w.text.trim();
                 if (!text) return;
                 
-                const isNum = /^-?[\d,\.]+$/.test(text);
+                const isNum = /^-?[\d,\.]+(?:\s*(?:cr|dr))?$/i.test(text);
                 const yearStr = r.date.split("-")[0];
                 const isDateYearOrMonthName = (text === yearStr) || 
                     ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].includes(text);
@@ -513,7 +505,7 @@ function parseSbiSpatial(pdfData) {
 
 // 4. Axis Parser
 function parseAxis(pdfData) {
-    const dateRegex = /(\d{2}\-\d{2}\-\d{4})|(\d{2}\/\d{2}\/\d{4})/g;
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
 
@@ -525,7 +517,7 @@ function parseIdfc(pdfData) {
 
 // 6. Yes Bank Parser
 function parseYes(pdfData) {
-    const dateRegex = /(\d{2}\-\d{2}\-\d{4})/g;
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
 
@@ -758,7 +750,7 @@ function parseViaRegex(pdfData, dateRegex) {
     let partBuffer = [];
 
     let openingBalance = null;
-    const opMatch = pdfData.fullText.match(/(?:Opening\s*Balance|Bal\s*as\s*on)[^\d]*?([\d,]+\.\d{2})/i);
+    const opMatch = pdfData.fullText.match(/(?:Opening\s*Balance|Bal\s*as\s*on)[^\d]*?([\d,]+(?:\.\d{1,2})?)/i);
     if (opMatch) {
         openingBalance = cleanAmountJS(opMatch[1]);
     }
@@ -766,7 +758,7 @@ function parseViaRegex(pdfData, dateRegex) {
     pdfData.pages.forEach(page => {
         page.lines.forEach(line => {
             const lineText = line.lineText.trim();
-            if (/txn date|value date|opening balance|closing balance|page/i.test(lineText)) {
+            if (/^\s*page\s+\d+/i.test(lineText) || /statement summary/i.test(lineText)) {
                 return;
             }
 
@@ -781,7 +773,7 @@ function parseViaRegex(pdfData, dateRegex) {
             }
 
             if (matches.length === 0) {
-                if (/bank limited|registered office|disclaimer|statement summary/i.test(lineText)) {
+                if (/bank limited|registered office|disclaimer/i.test(lineText)) {
                     return;
                 }
                 if (currentTx) {
@@ -798,7 +790,7 @@ function parseViaRegex(pdfData, dateRegex) {
 
             for (const mStr of matches) {
                 const idx = lineText.indexOf(mStr);
-                if (idx < 0 || idx > 30) continue;
+                if (idx < 0 || idx > 60) continue;
 
                 const parsed = standardizeDate(mStr);
                 if (parsed) {
@@ -820,9 +812,15 @@ function parseViaRegex(pdfData, dateRegex) {
 
             const idx = lineText.indexOf(bestDateStr);
             const trailingText = lineText.substring(idx + bestDateStr.length).trim();
-            const numbers = trailingText.match(/[\d,]+\.\d{2}/g) || [];
+            const numbers = trailingText.match(/[\d,]+(?:\.\d{1,2})?(?:\s*(?:cr|dr))?/gi) || [];
 
-            if (numbers.length === 0) {
+            // Filter out numbers that are likely dates, years or single digits
+            const validNumbers = numbers.filter(n => {
+                const cleaned = cleanAmountJS(n);
+                return cleaned > 0 || n.includes(".");
+            });
+
+            if (validNumbers.length === 0) {
                 if (currentTx) {
                     currentTx.Particulars += " " + lineText;
                     currentTx.Particulars = currentTx.Particulars.replace(/\s+/g, " ").trim();
@@ -836,14 +834,14 @@ function parseViaRegex(pdfData, dateRegex) {
             let balance = 0.0;
             let amount = 0.0;
 
-            if (numbers.length >= 2) {
-                balance = cleanAmountJS(numbers[numbers.length - 1]);
-                amount = cleanAmountJS(numbers[numbers.length - 2]);
-                const firstNumIdx = trailingText.indexOf(numbers[numbers.length - 2]);
+            if (validNumbers.length >= 2) {
+                balance = cleanAmountJS(validNumbers[validNumbers.length - 1]);
+                amount = cleanAmountJS(validNumbers[validNumbers.length - 2]);
+                const firstNumIdx = trailingText.indexOf(validNumbers[validNumbers.length - 2]);
                 particulars = trailingText.substring(0, firstNumIdx).trim();
-            } else if (numbers.length === 1) {
-                balance = cleanAmountJS(numbers[0]);
-                const firstNumIdx = trailingText.indexOf(numbers[0]);
+            } else if (validNumbers.length === 1) {
+                balance = cleanAmountJS(validNumbers[0]);
+                const firstNumIdx = trailingText.indexOf(validNumbers[0]);
                 particulars = trailingText.substring(0, firstNumIdx).trim();
             }
 
@@ -929,6 +927,6 @@ function parseViaRegex(pdfData, dateRegex) {
 // Generic Parser (Fallback)
 function parseGeneric(pdfData) {
     console.log("Parsing via Generic regex delta fallback.");
-    const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/g;
+    const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})|(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4})|(\d{1,2}\-[A-Za-z]{3,9}\-\d{2,4})/g;
     return parseViaRegex(pdfData, dateRegex);
 }
