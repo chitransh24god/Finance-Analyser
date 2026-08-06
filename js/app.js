@@ -1,7 +1,7 @@
 // Global Application State
 const state = {
     loggedIn: false,
-    activePage: 'hub', // 'hub', 'analyzer', 'calculator'
+    activePage: 'analyzer', // 'analyzer', 'calculator'
     activeSubtab: 'dashboard',
     activeCalculator: null,
     parsedData: null,
@@ -31,7 +31,7 @@ function initAuth() {
         state.loggedIn = true;
         document.getElementById("login-gate").classList.add("hidden");
         document.getElementById("main-workspace").classList.remove("hidden");
-        showPage('hub');
+        showPage('analyzer');
     }
 
     const loginForm = document.getElementById("login-form");
@@ -46,7 +46,7 @@ function initAuth() {
             errorDiv.classList.add("hidden");
             document.getElementById("login-gate").classList.add("hidden");
             document.getElementById("main-workspace").classList.remove("hidden");
-            showPage('hub');
+            showPage('analyzer');
         } else {
             errorDiv.classList.remove("hidden");
         }
@@ -66,45 +66,40 @@ function initAuth() {
 // ROUTING & NAVIGATION
 // ==========================================
 function initNavigation() {
-    const navHub = document.getElementById("nav-hub");
     const navAnalyzer = document.getElementById("nav-analyzer");
-
-    navHub.addEventListener("click", () => {
-        setActiveNav(navHub);
-        showPage('hub');
-    });
-
-    navAnalyzer.addEventListener("click", () => {
-        setActiveNav(navAnalyzer);
-        showPage('analyzer');
-    });
+    if (navAnalyzer) {
+        navAnalyzer.addEventListener("click", () => {
+            setActiveNav(navAnalyzer);
+            showPage('analyzer');
+        });
+    }
 }
 
 function setActiveNav(activeBtn) {
     document.querySelectorAll(".nav-item").forEach(item => {
         item.classList.remove("active");
     });
-    activeBtn.classList.add("active");
+    if (activeBtn) activeBtn.classList.add("active");
 }
 
 function showPage(pageId) {
     state.activePage = pageId;
     
-    // Hide all main pages
-    document.getElementById("section-hub").classList.add("hidden");
-    document.getElementById("section-analyzer").classList.add("hidden");
-    document.getElementById("section-calculator").classList.add("hidden");
+    const sectionHub = document.getElementById("section-hub");
+    const sectionAnalyzer = document.getElementById("section-analyzer");
+    const sectionCalculator = document.getElementById("section-calculator");
+
+    if (sectionHub) sectionHub.classList.add("hidden");
+    if (sectionAnalyzer) sectionAnalyzer.classList.add("hidden");
+    if (sectionCalculator) sectionCalculator.classList.add("hidden");
 
     const pageTitle = document.getElementById("page-title");
 
-    if (pageId === 'hub') {
-        document.getElementById("section-hub").classList.remove("hidden");
-        pageTitle.innerText = "Financial Hub";
-    } else if (pageId === 'analyzer') {
-        document.getElementById("section-analyzer").classList.remove("hidden");
+    if (pageId === 'analyzer' && sectionAnalyzer) {
+        sectionAnalyzer.classList.remove("hidden");
         pageTitle.innerText = "Bank Statement Analyzer";
-    } else if (pageId === 'calculator') {
-        document.getElementById("section-calculator").classList.remove("hidden");
+    } else if (pageId === 'calculator' && sectionCalculator) {
+        sectionCalculator.classList.remove("hidden");
         pageTitle.innerText = `${getCalculatorName(state.activeCalculator)}`;
     }
 }

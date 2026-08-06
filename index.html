@@ -97,26 +97,17 @@
                 </div>
                 <div>
                     <h1 class="font-black leading-none text-base finance-gradient-text">MyBankLoan AI</h1>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 mt-1">
-                        Active Hub
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 mt-1">
+                        Statement Analyzer
                     </span>
                 </div>
             </div>
 
             <!-- Navigation Links -->
             <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                <button id="nav-hub" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all">
-                    <i class="fa-solid fa-cubes text-base"></i>
-                    <span>Financial Hub</span>
-                </button>
-                
-                <div class="pt-4 pb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Services</div>
-                
-                <button id="nav-analyzer" class="nav-item w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-semibold transition-all">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-magnifying-glass-chart text-base"></i>
-                        <span>Statement Analyzer</span>
-                    </div>
+                <button id="nav-analyzer" class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold transition-all">
+                    <i class="fa-solid fa-magnifying-glass-chart text-base"></i>
+                    <span>Statement Analyzer</span>
                 </button>
             </nav>
 
@@ -139,7 +130,7 @@
             <!-- Top Header -->
             <header class="h-16 border-b border-slate-200/60 flex items-center justify-between px-8 bg-white/40 backdrop-blur-md flex-shrink-0">
                 <div class="flex items-center gap-4">
-                    <span id="page-title" class="text-lg font-bold text-slate-800">Financial Hub</span>
+                    <span id="page-title" class="text-lg font-bold text-slate-800">Bank Statement Analyzer</span>
                 </div>
                 <div class="text-xs text-slate-400 font-bold uppercase tracking-widest">
                     Professional Loan Analyzer V3
@@ -150,100 +141,9 @@
             <div class="flex-1 overflow-y-auto p-8" id="workspace-content">
 
                 <!-- ========================================== -->
-                <!-- PAGE: FINANCIAL HUB (3x2 Grid) -->
-                <!-- ========================================== -->
-                <section id="section-hub" class="space-y-6">
-                    <div class="max-w-6xl mx-auto">
-                        <div class="mb-8">
-                            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Corporate Financial Suite</h2>
-                            <p class="text-sm text-slate-500 mt-1">Select from our suite of institutional-grade valuation and planning calculators.</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <!-- Card 1: EMI Calculator -->
-                            <div class="premium-card group flex flex-col justify-between">
-                                <div>
-                                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
-                                        <i class="fa-solid fa-calculator"></i>
-                                    </div>
-                                    <h3 class="text-lg font-bold text-slate-950">EMI Calculator</h3>
-                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Calculate monthly installments, total interest & full amortization schedule for any loan.</p>
-                                </div>
-                                <button onclick="openCalculator('emi')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all">
-                                    <span>Open EMI Calculator</span>
-                                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                                </button>
-                            </div>
-
-                            <!-- Card 2: Bond Valuation -->
-                            <div class="premium-card group flex flex-col justify-between">
-                                <div>
-                                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
-                                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                                    </div>
-                                    <h3 class="text-lg font-bold text-slate-950">Bond Valuation</h3>
-                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Find the fair value of a bond using face value, coupon rate, market rate & tenure.</p>
-                                </div>
-                                <button onclick="openCalculator('bond')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
-                                    <span>Open Bond Valuation</span>
-                                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                                </button>
-                            </div>
-
-                            <!-- Card 3: SIP Calculator -->
-                            <div class="premium-card group flex flex-col justify-between">
-                                <div>
-                                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
-                                        <i class="fa-solid fa-chart-line"></i>
-                                    </div>
-                                    <h3 class="text-lg font-bold text-slate-950">SIP Calculator</h3>
-                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Estimate returns on your monthly SIP investments with compounding growth.</p>
-                                </div>
-                                <button onclick="openCalculator('sip')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
-                                    <span>Open SIP Calculator</span>
-                                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                                </button>
-                            </div>
-
-                            <!-- Card 4: FD Calculator -->
-                            <div class="premium-card group flex flex-col justify-between">
-                                <div>
-                                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
-                                        <i class="fa-solid fa-piggy-bank"></i>
-                                    </div>
-                                    <h3 class="text-lg font-bold text-slate-950">FD Calculator</h3>
-                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Calculate maturity amount and interest earned on fixed deposits compounding quarterly.</p>
-                                </div>
-                                <button onclick="openCalculator('fd')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
-                                    <span>Open FD Calculator</span>
-                                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                                </button>
-                            </div>
-
-                            <!-- Card 5: NPV / IRR -->
-                            <div class="premium-card group flex flex-col justify-between">
-                                <div>
-                                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-all duration-300">
-                                        <i class="fa-solid fa-scale-balanced"></i>
-                                    </div>
-                                    <h3 class="text-lg font-bold text-slate-950">NPV / IRR</h3>
-                                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Evaluate investment viability with Net Present Value and Internal Rate of Return.</p>
-                                </div>
-                                <button onclick="openCalculator('npv')" class="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-gray-50 hover:border-gray-300 transition-all">
-                                    <span>Open NPV / IRR</span>
-                                    <i class="fa-solid fa-arrow-right text-xs"></i>
-                                </button>
-                            </div>
-
-
-                        </div>
-                    </div>
-                </section>
-
-                <!-- ========================================== -->
                 <!-- PAGE: STATEMENT ANALYZER (PDF Uploader & Results) -->
                 <!-- ========================================== -->
-                <section id="section-analyzer" class="hidden space-y-8 max-w-7xl mx-auto">
+                <section id="section-analyzer" class="space-y-8 max-w-7xl mx-auto">
                     <div class="mb-4">
                         <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">Bank Statement Analysis</h2>
                         <p class="text-sm text-gray-500 mt-1">Upload a bank statement PDF. The system will analyze, validate, and compute credit risk indicators.</p>
