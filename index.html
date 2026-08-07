@@ -77,7 +77,6 @@
                             <span class="text-[11px] font-bold text-rose-500">Analyzer AI</span>
                         </div>
                     </div>
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="w-9 h-9 rounded-full border-2 border-white shadow-sm object-cover" alt="Profile">
                 </div>
 
                 <!-- Search Pill -->
@@ -225,9 +224,9 @@
                     <!-- Upload Statement Trigger Pill -->
                     <label for="statement-upload" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs shadow-md shadow-rose-500/25 hover:shadow-lg hover:scale-105 transition-all cursor-pointer flex items-center gap-2">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <span>Upload Statement</span>
+                        <span>Upload Statement(s)</span>
                     </label>
-                    <input type="file" id="statement-upload" accept="application/pdf" class="hidden">
+                    <input type="file" id="statement-upload" accept="application/pdf" multiple class="hidden">
                 </div>
             </header>
 
@@ -237,7 +236,7 @@
                 <!-- Dynamic Loader Overlay -->
                 <div id="analyzer-loader" class="hidden flex flex-col items-center justify-center py-20 animate-fade-in">
                     <div class="w-16 h-16 border-4 border-rose-200 border-t-rose-500 rounded-full animate-spin mb-4"></div>
-                    <h3 class="text-lg font-bold text-slate-800">Analyzing Bank Statement...</h3>
+                    <h3 class="text-lg font-bold text-slate-800">Analyzing Bank Statements...</h3>
                     <p id="loader-status" class="text-xs text-rose-500 font-semibold mt-1">Parsing character layouts and transaction ledgers</p>
                 </div>
 
@@ -251,12 +250,12 @@
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
                             </div>
                             <div>
-                                <h3 class="font-extrabold text-slate-900 text-lg">Upload Bank Statement PDF</h3>
-                                <p class="text-xs text-slate-500 mt-1">Drag and drop your bank statement PDF here, or click to browse files</p>
+                                <h3 class="font-extrabold text-slate-900 text-lg">Upload Bank Statement PDF(s)</h3>
+                                <p class="text-xs text-slate-500 mt-1">Drag & drop single or multiple bank statement PDFs here to generate a consolidated report</p>
                             </div>
                             <div class="flex items-center gap-2 pt-2">
                                 <span class="text-[11px] font-bold text-rose-600 bg-white/80 px-3 py-1 rounded-full border border-rose-200/80 shadow-sm">
-                                    Supported Banks: SBI, HDFC, ICICI, Axis, IDFC, Canara, Kotak, PNB, BOB, Union, IndusInd, CBI, BOI, Yes, Kalupur
+                                    Multi-File Support: SBI, HDFC, ICICI, Axis, IDFC, Canara, Kotak, PNB, BOB, Union, IndusInd, CBI, BOI, Yes, Kalupur
                                 </span>
                             </div>
                         </label>
@@ -265,22 +264,26 @@
                     <!-- SUBTAB CONTAINER -->
                     <div id="subtab-dashboard" class="subtab-content space-y-6">
                         <!-- Metadata + Summary Card Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                             <div class="aesthetic-card">
-                                <div class="text-xs font-bold text-rose-500 uppercase tracking-wider">Account Holder</div>
-                                <div id="meta-name" class="text-lg font-extrabold text-slate-900 mt-1 truncate">Not Available</div>
+                                <div class="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Account Holder</div>
+                                <div id="meta-name" class="text-base font-extrabold text-slate-900 mt-1 truncate">Not Available</div>
                             </div>
                             <div class="aesthetic-card">
-                                <div class="text-xs font-bold text-rose-500 uppercase tracking-wider">Account Number</div>
-                                <div id="meta-account" class="text-lg font-extrabold text-slate-900 mt-1 truncate">Not Available</div>
+                                <div class="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Account Number</div>
+                                <div id="meta-account" class="text-base font-extrabold text-slate-900 mt-1 truncate">Not Available</div>
                             </div>
                             <div class="aesthetic-card">
-                                <div class="text-xs font-bold text-rose-500 uppercase tracking-wider">Bank Name</div>
-                                <div id="meta-bank" class="text-lg font-extrabold text-slate-900 mt-1 truncate">Auto-Detected</div>
+                                <div class="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Bank Name</div>
+                                <div id="meta-bank" class="text-base font-extrabold text-slate-900 mt-1 truncate">Auto-Detected</div>
                             </div>
                             <div class="aesthetic-card">
-                                <div class="text-xs font-bold text-rose-500 uppercase tracking-wider">Statement Period</div>
+                                <div class="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Statement Period</div>
                                 <div id="meta-period" class="text-xs font-extrabold text-slate-900 mt-2 truncate">Not Available</div>
+                            </div>
+                            <div class="aesthetic-card">
+                                <div class="text-[11px] font-bold text-rose-500 uppercase tracking-wider">Statements</div>
+                                <div id="meta-statements-count" class="text-base font-extrabold text-slate-900 mt-1 truncate">1 Statement</div>
                             </div>
                         </div>
 

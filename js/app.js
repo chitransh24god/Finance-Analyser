@@ -12,8 +12,9 @@ const state = {
     activeSubtab: 'dashboard',
     activeCalculator: null,
     parsedData: null,
-    pendingFileBytes: null,
-    pendingFileName: ""
+    pendingFilesQueue: [],
+    currentEncryptedFileIndex: 0,
+    parsedStatementsList: []
 };
 
 // Global chart references to allow clean redraws
@@ -138,121 +139,221 @@ function switchSubtab(subtabId) {
 }
 
 // ==========================================
-// UPLOAD PIPELINE
+// MULTI-STATEMENT UPLOAD PIPELINE
 // ==========================================
 function initUploadListener() {
     const fileInput = document.getElementById("statement-upload");
     if (!fileInput) return;
     
     fileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
 
-        state.pendingFileName = file.name;
+        state.pendingFilesQueue = files;
+        state.parsedStatementsList = [];
+        state.currentEncryptedFileIndex = 0;
         
+        processUploadedStatementsQueue(0, "");
+    });
+}
+
+function readFileAsArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = function(event) {
-            state.pendingFileBytes = new Uint8Array(event.target.result);
-            processUploadedStatement();
-        };
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = err => reject(err);
         reader.readAsArrayBuffer(file);
     });
 }
 
-async function processUploadedStatement(password = "") {
+async function processUploadedStatementsQueue(fileIndex = 0, currentPassword = "") {
     const loader = document.getElementById("analyzer-loader");
     const results = document.getElementById("analyzer-results");
     const errorModal = document.getElementById("pdf-password-modal");
 
-    if (!state.pendingFileBytes || state.pendingFileBytes.length === 0) {
-        alert("File buffer empty. Please select your PDF statement again.");
+    if (!state.pendingFilesQueue || state.pendingFilesQueue.length === 0) {
+        alert("No statement files selected. Please select your PDF statement(s) again.");
         return;
     }
 
     results.classList.add("hidden");
     loader.classList.remove("hidden");
-    updateLoaderStatus("Extracting character layouts...");
 
-    try {
-        const freshPdfBytes = new Uint8Array(state.pendingFileBytes);
-        const extractedTextAndLayout = await extractTextAndLayoutFromPdf(freshPdfBytes, password);
+    for (let i = fileIndex; i < state.pendingFilesQueue.length; i++) {
+        const file = state.pendingFilesQueue[i];
+        updateLoaderStatus(`Parsing Statement ${i + 1} of ${state.pendingFilesQueue.length}: ${file.name}...`);
         
-        updateLoaderStatus("Identifying bank statement layout...");
-        const selectedBank = document.getElementById("bank-selector").value;
-        const { metadata, rawTransactions } = await routeAndExtractTransactions(
-            extractedTextAndLayout, 
-            state.pendingFileName,
-            selectedBank
-        );
-
-        if (rawTransactions.length === 0) {
-            throw new Error("No transactions extracted. Please ensure this is a supported bank statement.");
-        }
-
-        updateLoaderStatus("Running data integrity checks...");
-        const cleanedTransactions = rawTransactions.map(tx => ({
-            Date: tx.Date,
-            Particulars: tx.Particulars,
-            Debit: parseFloat(tx.Debit) || 0.0,
-            Credit: parseFloat(tx.Credit) || 0.0,
-            Balance: parseFloat(tx.Balance) || 0.0
-        })).sort((a, b) => new Date(a.Date) - new Date(b.Date));
-
-        updateLoaderStatus("Computing average daily balances (ABB)...");
-        const { monthly_abb, abb_summary } = calculateMonthlyAbbJS(
-            cleanedTransactions, 
-            metadata.start_date, 
-            metadata.end_date
-        );
-
-        updateLoaderStatus("Evaluating credit risk variables...");
-        const assessment = analyzeCreditProfileJS(
-            cleanedTransactions, 
-            monthly_abb, 
-            abb_summary
-        );
-
-        state.parsedData = {
-            metadata,
-            transactions: cleanedTransactions,
-            monthly_abb,
-            abb_summary,
-            assessment
-        };
-
-        renderAnalyzerDashboard(state.parsedData);
-        switchSubtab('dashboard');
-
-        loader.classList.add("hidden");
-        results.classList.remove("hidden");
-        errorModal.classList.add("hidden");
-        document.getElementById("pdf-password-error").classList.add("hidden");
-        document.getElementById("statement-upload").value = "";
-
-    } catch (err) {
-        loader.classList.add("hidden");
-        const errMsg = (err.message || "").toLowerCase();
-        const errName = err.name || "";
-        
-        if (errName === "PasswordException" || errMsg.includes("password") || errMsg.includes("decrypt") || errMsg.includes("encrypted")) {
-            errorModal.classList.remove("hidden");
-            const pwdInput = document.getElementById("pdf-password-input");
-            const errorDiv = document.getElementById("pdf-password-error");
+        try {
+            const fileBytes = await readFileAsArrayBuffer(file);
+            const pwd = (i === fileIndex) ? currentPassword : "";
+            const extractedLayout = await extractTextAndLayoutFromPdf(new Uint8Array(fileBytes), pwd);
             
-            if (password) {
-                errorDiv.innerText = "Incorrect password. Please enter the valid PDF password.";
-                errorDiv.classList.remove("hidden");
+            updateLoaderStatus(`Routing Bank Format for ${file.name}...`);
+            const selectedBank = document.getElementById("bank-selector").value;
+            const { metadata, rawTransactions } = await routeAndExtractTransactions(
+                extractedLayout, 
+                file.name,
+                selectedBank
+            );
+
+            if (rawTransactions && rawTransactions.length > 0) {
+                state.parsedStatementsList.push({
+                    filename: file.name,
+                    metadata,
+                    rawTransactions
+                });
             } else {
-                errorDiv.innerText = "This bank statement is password protected. Please enter the password.";
-                errorDiv.classList.remove("hidden");
+                console.warn(`0 transactions extracted from ${file.name}`);
             }
-            pwdInput.focus();
-            pwdInput.select();
-        } else {
-            alert(`Processing Error: ${err.message || err}`);
-            console.error(err);
+        } catch (err) {
+            const errMsg = (err.message || "").toLowerCase();
+            const errName = err.name || "";
+            if (errName === "PasswordException" || errMsg.includes("password") || errMsg.includes("decrypt") || errMsg.includes("encrypted")) {
+                loader.classList.add("hidden");
+                state.currentEncryptedFileIndex = i;
+                showPasswordModalForFile(file.name, currentPassword ? "Incorrect password. Please enter valid password." : "");
+                return;
+            } else {
+                console.error(`Error processing file ${file.name}:`, err);
+            }
         }
     }
+
+    finalizeConsolidatedStatements();
+}
+
+function showPasswordModalForFile(filename, errorMsg = "") {
+    const errorModal = document.getElementById("pdf-password-modal");
+    const errorDiv = document.getElementById("pdf-password-error");
+    const pwdInput = document.getElementById("pdf-password-input");
+
+    errorModal.classList.remove("hidden");
+    if (errorMsg) {
+        errorDiv.innerText = errorMsg;
+        errorDiv.classList.remove("hidden");
+    } else {
+        errorDiv.innerText = `File "${filename}" is encrypted. Please enter its password.`;
+        errorDiv.classList.remove("hidden");
+    }
+    pwdInput.value = "";
+    pwdInput.focus();
+}
+
+function submitPdfPassword() {
+    const pwd = document.getElementById("pdf-password-input").value;
+    if (!pwd) {
+        document.getElementById("pdf-password-error").innerText = "Please enter a password.";
+        document.getElementById("pdf-password-error").classList.remove("hidden");
+        return;
+    }
+    document.getElementById("pdf-password-modal").classList.add("hidden");
+    processUploadedStatementsQueue(state.currentEncryptedFileIndex, pwd);
+}
+
+function closePasswordModal() {
+    document.getElementById("pdf-password-modal").classList.add("hidden");
+    document.getElementById("pdf-password-error").classList.add("hidden");
+    document.getElementById("pdf-password-input").value = "";
+    document.getElementById("statement-upload").value = "";
+}
+
+function finalizeConsolidatedStatements() {
+    const loader = document.getElementById("analyzer-loader");
+    const results = document.getElementById("analyzer-results");
+    const errorModal = document.getElementById("pdf-password-modal");
+
+    if (!state.parsedStatementsList || state.parsedStatementsList.length === 0) {
+        loader.classList.add("hidden");
+        alert("No transactions extracted from the uploaded PDF statement(s). Please ensure these are supported bank statements.");
+        return;
+    }
+
+    updateLoaderStatus("Merging & Consolidating Transaction Ledgers...");
+
+    let allTxList = [];
+    let bankNamesSet = new Set();
+    let accNumbersSet = new Set();
+    let customerNamesSet = new Set();
+
+    state.parsedStatementsList.forEach(st => {
+        if (st.metadata.bank_name && st.metadata.bank_name !== "Generic / Unrecognized") {
+            bankNamesSet.add(st.metadata.bank_name);
+        }
+        if (st.metadata.account_number && st.metadata.account_number !== "Not Available") {
+            accNumbersSet.add(st.metadata.account_number);
+        }
+        if (st.metadata.customer_name && st.metadata.customer_name !== "Not Available") {
+            customerNamesSet.add(st.metadata.customer_name);
+        }
+        
+        st.rawTransactions.forEach(tx => {
+            allTxList.push({
+                Date: tx.Date,
+                Particulars: tx.Particulars,
+                Debit: parseFloat(tx.Debit) || 0.0,
+                Credit: parseFloat(tx.Credit) || 0.0,
+                Balance: parseFloat(tx.Balance) || 0.0,
+                StatementSource: st.filename
+            });
+        });
+    });
+
+    // Sort all transactions chronologically by Date
+    allTxList.sort((a, b) => new Date(a.Date) - new Date(b.Date));
+
+    // Deduplicate exact duplicate transaction rows
+    const uniqueTxMap = new Map();
+    const deduplicatedTxList = [];
+    allTxList.forEach(tx => {
+        const key = `${tx.Date}|${tx.Particulars}|${tx.Debit}|${tx.Credit}|${tx.Balance}`;
+        if (!uniqueTxMap.has(key)) {
+            uniqueTxMap.set(key, true);
+            deduplicatedTxList.push(tx);
+        }
+    });
+
+    const earliestDate = deduplicatedTxList[0].Date;
+    const latestDate = deduplicatedTxList[deduplicatedTxList.length - 1].Date;
+
+    const consolidatedMetadata = {
+        customer_name: customerNamesSet.size > 0 ? Array.from(customerNamesSet).join(", ") : "Not Available",
+        account_number: accNumbersSet.size > 0 ? Array.from(accNumbersSet).join(", ") : "Not Available",
+        bank_name: bankNamesSet.size > 0 ? Array.from(bankNamesSet).join(", ") : "Consolidated Bank Statements",
+        start_date: earliestDate,
+        end_date: latestDate,
+        statements_count: state.parsedStatementsList.length
+    };
+
+    updateLoaderStatus("Computing Consolidated Monthly ABB...");
+    const { monthly_abb, abb_summary } = calculateMonthlyAbbJS(
+        deduplicatedTxList,
+        earliestDate,
+        latestDate
+    );
+
+    updateLoaderStatus("Evaluating Consolidated Credit Risk Variables...");
+    const assessment = analyzeCreditProfileJS(
+        deduplicatedTxList,
+        monthly_abb,
+        abb_summary
+    );
+
+    state.parsedData = {
+        metadata: consolidatedMetadata,
+        transactions: deduplicatedTxList,
+        monthly_abb,
+        abb_summary,
+        assessment,
+        statementsList: state.parsedStatementsList
+    };
+
+    renderAnalyzerDashboard(state.parsedData);
+    switchSubtab('dashboard');
+
+    loader.classList.add("hidden");
+    results.classList.remove("hidden");
+    errorModal.classList.add("hidden");
+    document.getElementById("statement-upload").value = "";
 }
 
 function updateLoaderStatus(text) {
@@ -272,24 +373,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-function submitPdfPassword() {
-    const pwd = document.getElementById("pdf-password-input").value;
-    if (!pwd) {
-        document.getElementById("pdf-password-error").innerText = "Please enter a password.";
-        document.getElementById("pdf-password-error").classList.remove("hidden");
-        return;
-    }
-    document.getElementById("pdf-password-modal").classList.add("hidden");
-    processUploadedStatement(pwd);
-}
-
-function closePasswordModal() {
-    document.getElementById("pdf-password-modal").classList.add("hidden");
-    document.getElementById("pdf-password-error").classList.add("hidden");
-    document.getElementById("pdf-password-input").value = "";
-    document.getElementById("statement-upload").value = "";
-}
-
 // ==========================================
 // RENDERING & VISUALIZATION LOGIC
 // ==========================================
@@ -298,12 +381,15 @@ function renderAnalyzerDashboard(data) {
     if (document.getElementById("meta-account")) document.getElementById("meta-account").innerText = data.metadata.account_number;
     if (document.getElementById("meta-bank")) document.getElementById("meta-bank").innerText = data.metadata.bank_name;
     if (document.getElementById("meta-period")) document.getElementById("meta-period").innerText = `${data.metadata.start_date} to ${data.metadata.end_date}`;
+    if (document.getElementById("meta-statements-count")) {
+        const count = data.metadata.statements_count || (data.statementsList ? data.statementsList.length : 1);
+        document.getElementById("meta-statements-count").innerText = `${count} Statement${count > 1 ? 's Consolidated' : ''}`;
+    }
 
     const abb1mStr = formatCurrencyJS(data.abb_summary.abb_1m);
     const abb3mStr = formatCurrencyJS(data.abb_summary.abb_3m);
     const abb6mStr = formatCurrencyJS(data.abb_summary.abb_6m);
 
-    if (document.getElementById("abb-1m")) document.getElementById("abb-1m").innerText = abb1mStr;
     if (document.getElementById("summary-abb-1m")) document.getElementById("summary-abb-1m").innerText = abb1mStr;
     if (document.getElementById("abb-3m")) document.getElementById("abb-3m").innerText = abb3mStr;
     if (document.getElementById("abb-6m")) document.getElementById("abb-6m").innerText = abb6mStr;
@@ -319,12 +405,6 @@ function renderAnalyzerDashboard(data) {
         if (tx.Credit > 0) crCount++;
         if (tx.Debit > 0) drCount++;
     });
-
-    if (document.getElementById("kpi-total-credits")) document.getElementById("kpi-total-credits").innerText = formatCurrencyJS(totalCredits);
-    if (document.getElementById("kpi-credit-count")) document.getElementById("kpi-credit-count").innerHTML = `<i class="fa-solid fa-list-check"></i> ${crCount} credit entries detected`;
-    
-    if (document.getElementById("kpi-total-debits")) document.getElementById("kpi-total-debits").innerText = formatCurrencyJS(totalDebits);
-    if (document.getElementById("kpi-debit-count")) document.getElementById("kpi-debit-count").innerHTML = `<i class="fa-solid fa-list-check"></i> ${drCount} debit entries detected`;
 
     if (document.getElementById("side-total-credit")) document.getElementById("side-total-credit").innerText = `+${formatCurrencyJS(totalCredits)}`;
     if (document.getElementById("side-total-debit")) document.getElementById("side-total-debit").innerText = `-${formatCurrencyJS(totalDebits)}`;

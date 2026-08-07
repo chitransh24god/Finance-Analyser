@@ -3,67 +3,63 @@
 /**
  * Builds, styles, and initiates download of Excel files client-side.
  */
-async function downloadReport(reportType) {
+async function downloadReport(reportType = "consolidated_full") {
     if (!state.parsedData) {
         alert("No statement data available to export. Please parse a statement first.");
         return;
     }
 
-    const { metadata, transactions, monthly_abb, abb_summary, assessment } = state.parsedData;
+    const { metadata, transactions, monthly_abb, abb_summary, assessment, statementsList } = state.parsedData;
     const workbook = new ExcelJS.Workbook();
-    let filename = "";
+    let filename = "Consolidated_Financial_Analysis_Report";
 
     // Style helper values
-    const primaryBlue = "2563EB";
+    const primaryBlue = "FF5E7E";
     const headerFontColor = "FFFFFF";
-    const lightZebra = "F9FAFB";
+    const lightZebra = "FFF9FA";
     const fontName = "Segoe UI";
 
-    if (reportType === "cleaned_transactions") {
-        filename = "Cleaned_Transactions_Log";
-        const ws = workbook.addWorksheet("Transactions");
-        
-        // Setup column headers
-        ws.columns = [
-            { header: "Date", key: "date", width: 15 },
-            { header: "Particulars", key: "particulars", width: 45 },
-            { header: "Debit (₹)", key: "debit", width: 18 },
-            { header: "Credit (₹)", key: "credit", width: 18 },
-            { header: "Balance (₹)", key: "balance", width: 20 }
-        ];
+    // SHEET 1: Consolidated Transactions Ledger
+    const wsTx = workbook.addWorksheet("Consolidated Ledger");
+    wsTx.columns = [
+        { header: "Date", key: "date", width: 15 },
+        { header: "Particulars / Description", key: "particulars", width: 48 },
+        { header: "Debit (Out ₹)", key: "debit", width: 18 },
+        { header: "Credit (In ₹)", key: "credit", width: 18 },
+        { header: "Balance (₹)", key: "balance", width: 20 },
+        { header: "Statement Source PDF", key: "source", width: 32 }
+    ];
 
-        // Add transaction data rows
-        transactions.forEach(tx => {
-            ws.addRow({
-                date: tx.Date,
-                particulars: tx.Particulars,
-                debit: tx.Debit,
-                credit: tx.Credit,
-                balance: tx.Balance
-            });
+    transactions.forEach(tx => {
+        wsTx.addRow({
+            date: tx.Date,
+            particulars: tx.Particulars,
+            debit: tx.Debit,
+            credit: tx.Credit,
+            balance: tx.Balance,
+            source: tx.StatementSource || "Statement 1"
         });
+    });
 
-        // Apply Styles
-        styleTableHeaders(ws, primaryBlue, headerFontColor, fontName);
-        styleDataGrid(ws, [3, 4, 5], fontName, lightZebra);
+    styleTableHeaders(wsTx, primaryBlue, headerFontColor, fontName);
+    styleDataGrid(wsTx, [3, 4, 5], fontName, lightZebra);
 
-    } else if (reportType === "monthly_abb") {
-        filename = "Monthly_ABB_Report";
-        const ws = workbook.addWorksheet("Monthly ABB Breakdown");
+    // SHEET 2: Monthly ABB Breakdown
+    const wsAbb = workbook.addWorksheet("Monthly ABB Analysis");
+    wsAbb.columns = [
+        { header: "Month Period", key: "month", width: 22 },
+        { header: "5th Bal (₹)", key: "bal5", width: 16 },
+        { header: "10th Bal (₹)", key: "bal10", width: 16 },
+        { header: "15th Bal (₹)", key: "bal15", width: 16 },
+        { header: "20th Bal (₹)", key: "bal20", width: 16 },
+        { header: "25th Bal (₹)", key: "bal25", width: 16 },
+        { header: "Month End (₹)", key: "balEnd", width: 18 },
+        { header: "Calculated ABB (₹)", key: "abb", width: 22 }
+    ];
 
-        ws.columns = [
-            { header: "Month Period", key: "month", width: 22 },
-            { header: "5th Bal (₹)", key: "bal5", width: 16 },
-            { header: "10th Bal (₹)", key: "bal10", width: 16 },
-            { header: "15th Bal (₹)", key: "bal15", width: 16 },
-            { header: "20th Bal (₹)", key: "bal20", width: 16 },
-            { header: "25th Bal (₹)", key: "bal25", width: 16 },
-            { header: "Month End (₹)", key: "balEnd", width: 18 },
-            { header: "Calculated ABB (₹)", key: "abb", width: 22 }
-        ];
-
+    if (monthly_abb && monthly_abb.length > 0) {
         monthly_abb.forEach(row => {
-            ws.addRow({
+            wsAbb.addRow({
                 month: row.monthName,
                 bal5: row.bal5,
                 bal10: row.bal10,
@@ -74,105 +70,95 @@ async function downloadReport(reportType) {
                 abb: row.abb
             });
         });
-
-        styleTableHeaders(ws, primaryBlue, headerFontColor, fontName);
-        styleDataGrid(ws, [2, 3, 4, 5, 6, 7, 8], fontName, lightZebra);
-
-        // Highlight ABB target column
-        ws.eachRow((row, rowNumber) => {
-            if (rowNumber > 1) {
-                const cell = row.getCell(8);
-                cell.font = { name: fontName, size: 10, bold: true, color: { argb: "1E3A8A" } };
-                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "EFF6FF" } };
-            }
-        });
-
-    } else if (reportType === "overall_abb") {
-        filename = "Rolling_ABB_Summary";
-        const ws = workbook.addWorksheet("ABB Rolling Summary");
-
-        ws.columns = [
-            { header: "Rolling Period Metrical Type", key: "type", width: 32 },
-            { header: "Calculated ABB Value (₹)", key: "value", width: 28 }
-        ];
-
-        ws.addRow({ type: "1-Month ABB (Latest Month)", value: abb_summary.abb_1m });
-        ws.addRow({ type: "3-Month Rolling Average Daily Balance", value: abb_summary.abb_3m });
-        ws.addRow({ type: "6-Month Rolling Average Daily Balance", value: abb_summary.abb_6m });
-
-        styleTableHeaders(ws, primaryBlue, headerFontColor, fontName);
-        styleDataGrid(ws, [2], fontName, lightZebra);
-
-        // Make amounts prominent
-        ws.eachRow((row, rowNumber) => {
-            if (rowNumber > 1) {
-                row.getCell(2).font = { name: fontName, size: 11, bold: true, color: { argb: "2563EB" } };
-            }
-        });
-
-    } else if (reportType === "loan_assessment") {
-        filename = "Credit_Underwriting_Report";
-        const ws = workbook.addWorksheet("Credit Suite Verdict");
-
-        // Set columns
-        ws.columns = [
-            { header: "Risk Parameter Category", key: "param", width: 32 },
-            { header: "Underwriting Score / Value", key: "val", width: 45 }
-        ];
-
-        ws.addRow({ param: "Bank Identity Name", val: metadata.bank_name });
-        ws.addRow({ param: "Account Number Checked", val: metadata.account_number });
-        ws.addRow({ param: "Customer Primary Name", val: metadata.customer_name });
-        ws.addRow({ param: "Calculated 6-Month ABB", val: abb_summary.abb_6m });
-        ws.addRow({ param: "Liquidity Ratio (Credits/Debits)", val: assessment.metrics.net_ratio });
-        ws.addRow({ param: "Lowest Ledger Balance Event", val: assessment.metrics.min_bal });
-        ws.addRow({ param: "Overdraft / Negative Balance Days", val: assessment.metrics.negative_count });
-        ws.addRow({ param: "ABB Strength Grade", val: assessment.abb_grade });
-        ws.addRow({ param: "Ledger Stability Grade", val: assessment.stability_grade });
-        ws.addRow({ param: "Liquidity Flow Verdict", val: assessment.liquidity_grade });
-        ws.addRow({ param: "OVERALL UNDERWRITING RATING", val: assessment.overall_grade });
-        ws.addRow({ param: "ANALYST VERDICT DIRECTIVE", val: assessment.verdict });
-
-        styleTableHeaders(ws, primaryBlue, headerFontColor, fontName);
-        
-        // Style specific cell structures for description and verdict layouts
-        ws.eachRow((row, rowNumber) => {
-            if (rowNumber > 1) {
-                const cellParam = row.getCell(1);
-                const cellVal = row.getCell(2);
-                
-                cellParam.font = { name: fontName, size: 10, bold: true };
-                cellVal.font = { name: fontName, size: 10 };
-                
-                // Borders
-                row.eachCell(cell => {
-                    cell.border = {
-                        top: { style: 'thin', color: { argb: 'E5E7EB' } },
-                        bottom: { style: 'thin', color: { argb: 'E5E7EB' } }
-                    };
-                });
-
-                // Apply currency formatting to numeric values
-                if ([4, 6].includes(rowNumber)) {
-                    cellVal.numFmt = '"₹"#,##0.00';
-                    cellVal.font = { name: fontName, size: 10, bold: true };
-                }
-
-                // Make Overall rating and Verdict bold
-                if (rowNumber === 11) {
-                    cellVal.font = { name: fontName, size: 11, bold: true, color: { argb: "1E3A8A" } };
-                    cellVal.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "EFF6FF" } };
-                }
-                if (rowNumber === 12) {
-                    cellVal.font = { name: fontName, size: 9, italic: true };
-                    row.height = 40; // Expand for wrapping verdict text
-                    cellVal.alignment = { wrapText: true, vertical: 'middle' };
-                }
-            }
-        });
     }
 
-    // Write file to buffer and download
+    styleTableHeaders(wsAbb, primaryBlue, headerFontColor, fontName);
+    styleDataGrid(wsAbb, [2, 3, 4, 5, 6, 7, 8], fontName, lightZebra);
+
+    wsAbb.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+            const cell = row.getCell(8);
+            cell.font = { name: fontName, size: 10, bold: true, color: { argb: "991B1B" } };
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF0F3" } };
+        }
+    });
+
+    // SHEET 3: Credit Risk Suite Verdict & Executive Summary
+    const wsRisk = workbook.addWorksheet("Executive Risk Summary");
+    wsRisk.columns = [
+        { header: "Consolidated Executive Metric", key: "param", width: 36 },
+        { header: "Evaluated Result / Value", key: "val", width: 48 }
+    ];
+
+    wsRisk.addRow({ param: "Account Holder Name(s)", val: metadata.customer_name });
+    wsRisk.addRow({ param: "Account Number(s)", val: metadata.account_number });
+    wsRisk.addRow({ param: "Bank Institution(s)", val: metadata.bank_name });
+    wsRisk.addRow({ param: "Total Statements Consolidated", val: metadata.statements_count || (statementsList ? statementsList.length : 1) });
+    wsRisk.addRow({ param: "Consolidated Period Range", val: `${metadata.start_date} to ${metadata.end_date}` });
+    wsRisk.addRow({ param: "1-Month ABB (Latest Month)", val: abb_summary.abb_1m });
+    wsRisk.addRow({ param: "3-Month Rolling ABB", val: abb_summary.abb_3m });
+    wsRisk.addRow({ param: "6-Month Rolling ABB", val: abb_summary.abb_6m });
+    wsRisk.addRow({ param: "OVERALL CREDIT RATING", val: `${assessment.overall_grade} (${assessment.abb_grade})` });
+    wsRisk.addRow({ param: "ESTIMATED LOAN ELIGIBILITY (12x ABB)", val: abb_summary.abb_6m * 12 });
+    wsRisk.addRow({ param: "UNDERWRITING DIRECTIVE VERDICT", val: assessment.verdict });
+
+    styleTableHeaders(wsRisk, primaryBlue, headerFontColor, fontName);
+
+    wsRisk.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+            const cellParam = row.getCell(1);
+            const cellVal = row.getCell(2);
+            
+            cellParam.font = { name: fontName, size: 10, bold: true };
+            cellVal.font = { name: fontName, size: 10 };
+            
+            row.eachCell(cell => {
+                cell.border = {
+                    bottom: { style: 'thin', color: { argb: 'F3E8EE' } }
+                };
+            });
+
+            if ([6, 7, 8, 10].includes(rowNumber)) {
+                cellVal.numFmt = '"₹"#,##0.00';
+                cellVal.font = { name: fontName, size: 10, bold: true };
+            }
+
+            if (rowNumber === 9) {
+                cellVal.font = { name: fontName, size: 11, bold: true, color: { argb: "991B1B" } };
+                cellVal.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF0F3" } };
+            }
+            if (rowNumber === 11) {
+                cellVal.font = { name: fontName, size: 9.5, italic: true };
+                row.height = 36;
+                cellVal.alignment = { wrapText: true, vertical: 'middle' };
+            }
+        }
+    });
+
+    // SHEET 4: Individual Statements Breakdown (if multi-statement)
+    if (statementsList && statementsList.length > 0) {
+        const wsBreakdown = workbook.addWorksheet("Statements Breakdown");
+        wsBreakdown.columns = [
+            { header: "Uploaded PDF File Name", key: "file", width: 35 },
+            { header: "Detected Bank Name", key: "bank", width: 25 },
+            { header: "Account Number", key: "acc", width: 22 },
+            { header: "Extracted Transactions Count", key: "count", width: 28 }
+        ];
+
+        statementsList.forEach(st => {
+            wsBreakdown.addRow({
+                file: st.filename,
+                bank: st.metadata.bank_name || "Auto-Detected",
+                acc: st.metadata.account_number || "N/A",
+                count: st.rawTransactions ? st.rawTransactions.length : 0
+            });
+        });
+
+        styleTableHeaders(wsBreakdown, primaryBlue, headerFontColor, fontName);
+        styleDataGrid(wsBreakdown, [4], fontName, lightZebra);
+    }
+
+    // Write file to buffer and trigger download
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const link = document.createElement("a");
@@ -217,7 +203,6 @@ function styleDataGrid(ws, numericColIndexes, fontName, zebraColor) {
                 size: 9.5
             };
 
-            // Zebra backgrounds
             if (isEven) {
                 cell.fill = {
                     type: "pattern",
@@ -226,12 +211,10 @@ function styleDataGrid(ws, numericColIndexes, fontName, zebraColor) {
                 };
             }
 
-            // Cell borders
             cell.border = {
                 bottom: { style: "thin", color: { argb: "F1F5F9" } }
             };
 
-            // Format numbers to currency and right-align
             if (numericColIndexes.includes(colNumber)) {
                 cell.alignment = { horizontal: "right", vertical: "middle" };
                 cell.numFmt = '"₹"#,##0.00';
@@ -244,7 +227,7 @@ function styleDataGrid(ws, numericColIndexes, fontName, zebraColor) {
 
 function exportExcel() {
     if (typeof downloadReport === "function") {
-        downloadReport("cleaned_transactions");
+        downloadReport("consolidated_full");
     } else {
         alert("Excel generator module loading...");
     }
