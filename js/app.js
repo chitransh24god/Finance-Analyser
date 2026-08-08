@@ -484,20 +484,68 @@ function finalizeConsolidatedStatements() {
 
 function populateAccountViewSelector(statementsList) {
     const selector = document.getElementById("account-view-selector");
-    if (!selector) return;
+    const pillsContainer = document.getElementById("dashboard-bank-pills");
 
-    selector.innerHTML = `<option value="consolidated">🌐 All Accounts (Consolidated View)</option>`;
+    if (selector) {
+        selector.innerHTML = `<option value="consolidated">🌐 All Accounts (Consolidated View)</option>`;
+    }
+
+    if (pillsContainer) {
+        pillsContainer.innerHTML = `
+            <button class="subtab-pill active" onclick="switchDashboardBankFilter('consolidated', this)">
+                🌐 All Banks (Consolidated)
+            </button>
+        `;
+    }
 
     if (statementsList && statementsList.length > 0) {
         statementsList.forEach((st, idx) => {
             const bankName = st.metadata.bank_name || "Bank Statement";
             const accNum = st.metadata.account_number || "N/A";
-            const option = document.createElement("option");
-            option.value = st.filename;
-            option.innerText = `🏦 Account ${idx + 1}: ${bankName} (${accNum})`;
-            selector.appendChild(option);
+            
+            if (selector) {
+                const option = document.createElement("option");
+                option.value = st.filename;
+                option.innerText = `🏦 Account ${idx + 1}: ${bankName} (${accNum})`;
+                selector.appendChild(option);
+            }
+
+            if (pillsContainer) {
+                const pillBtn = document.createElement("button");
+                pillBtn.className = "subtab-pill";
+                pillBtn.innerHTML = `🏦 ${bankName} (${accNum})`;
+                pillBtn.onclick = function() {
+                    switchDashboardBankFilter(st.filename, this);
+                };
+                pillsContainer.appendChild(pillBtn);
+            }
         });
     }
+}
+
+function switchDashboardBankFilter(val, element) {
+    document.querySelectorAll("#dashboard-bank-pills .subtab-pill").forEach(btn => {
+        btn.classList.remove("active");
+    });
+    if (element) {
+        element.classList.add("active");
+    }
+
+    const selector = document.getElementById("account-view-selector");
+    if (selector) {
+        selector.value = val;
+    }
+
+    const badge = document.getElementById("active-bank-badge");
+    if (badge) {
+        if (val === "consolidated") {
+            badge.innerText = "Showing Consolidated Full Report";
+        } else {
+            badge.innerText = `Filtered: ${element ? element.innerText : val}`;
+        }
+    }
+
+    filterDashboardByAccount(val);
 }
 
 function filterDashboardByAccount(selectedValue) {

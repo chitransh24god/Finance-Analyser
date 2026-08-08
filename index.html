@@ -285,6 +285,26 @@
 
                     <!-- SUBTAB CONTAINER -->
                     <div id="subtab-dashboard" class="subtab-content space-y-6">
+                        <!-- Interactive Dashboard Bank Filter Switcher Bar -->
+                        <div id="dashboard-bank-filter-bar" class="aesthetic-card p-4 flex flex-wrap items-center justify-between gap-3 bg-white/90 border border-rose-100/60 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xs font-bold">
+                                    <i class="fa-solid fa-building-columns"></i>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Select Bank View:</span>
+                                    <div id="dashboard-bank-pills" class="flex flex-wrap items-center gap-2">
+                                        <button class="subtab-pill active" onclick="switchDashboardBankFilter('consolidated', this)">
+                                            🌐 All Banks (Consolidated)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <span id="active-bank-badge" class="text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-full border border-rose-100/80">
+                                Showing Consolidated Full Report
+                            </span>
+                        </div>
+
                         <!-- Metadata + Summary Card Grid -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                             <div class="aesthetic-card">
