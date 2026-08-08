@@ -185,44 +185,29 @@
         <!-- Main Workspace Area -->
         <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
             
-            <!-- Reference Style Header Bar with Time, Weather & Navigation Pills -->
+            <!-- Tier 1 Top Header Bar (Ultra-Spacious Action Header) -->
             <header class="h-20 px-8 flex items-center justify-between border-b border-white/60 bg-white/40 backdrop-blur-2xl flex-shrink-0 z-20">
-                <!-- Left Section: Integrated Time & Weather Glass Badge -->
+                <!-- Left Section: Integrated Time, Weather & Status Pill -->
                 <div class="flex items-center gap-3">
-                    <div class="header-widget-pill flex items-center gap-2.5 px-4 py-2 bg-white/80 border border-purple-100/80 shadow-sm text-xs font-bold text-slate-700">
-                        <i class="fa-regular fa-clock text-purple-600"></i>
+                    <div class="header-widget-pill flex items-center gap-2.5 px-4 py-2 bg-white/80 border border-indigo-100/80 shadow-sm text-xs font-bold text-slate-700">
+                        <i class="fa-regular fa-clock text-indigo-600"></i>
                         <span id="header-live-time">12:45 PM</span>
                         <span class="text-slate-300">|</span>
                         <span class="text-slate-500 font-semibold">5 Dec, Mon</span>
-                        <i class="fa-solid fa-cloud text-purple-400 text-[11px] ml-1"></i>
+                        <i class="fa-solid fa-cloud text-indigo-400 text-[11px] ml-1"></i>
                         <span class="text-slate-500 font-semibold">16°C</span>
+                    </div>
+                    <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs font-extrabold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>AI Engine Active</span>
                     </div>
                 </div>
 
-                <!-- Central Section: Floating Pill Navigation Task Bar -->
-                <div class="flex items-center gap-2 bg-white/80 p-1.5 rounded-full border border-purple-100/80 shadow-sm backdrop-blur-xl">
-                    <button class="nav-pill-btn active" onclick="switchSubtab('dashboard')">
-                        <i class="fa-solid fa-house text-xs mr-1.5"></i>Dashboard
-                    </button>
-                    <button class="nav-pill-btn" onclick="switchSubtab('ledger')">
-                        <i class="fa-solid fa-receipt text-xs mr-1.5"></i>Transactions
-                    </button>
-                    <button class="nav-pill-btn" onclick="switchSubtab('abb')">
-                        <i class="fa-solid fa-chart-column text-xs mr-1.5"></i>ABB Analysis
-                    </button>
-                    <button class="nav-pill-btn" onclick="switchSubtab('credit')">
-                        <i class="fa-solid fa-shield-halved text-xs mr-1.5"></i>Credit Risk AI
-                    </button>
-                    <button class="nav-pill-btn" onclick="switchSubtab('comparison')">
-                        <i class="fa-solid fa-code-compare text-xs mr-1.5"></i>Account Comparison
-                    </button>
-                </div>
-
-                <!-- Right Section: Action Controls -->
+                <!-- Right Section: Action Controls (Bank Format, Account Selector, Upload Button) -->
                 <div class="flex items-center gap-3">
                     <!-- Bank Format Selection Pill Dropdown -->
                     <div class="relative">
-                        <select id="bank-selector" class="pl-4 pr-9 py-2.5 rounded-full border border-purple-200/80 bg-white/90 font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-all">
+                        <select id="bank-selector" class="pl-4 pr-9 py-2.5 rounded-full border border-indigo-200/80 bg-white/90 font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-indigo-400 transition-all">
                             <option value="auto">🔍 Auto-Detect Bank</option>
                             <option value="sbi">State Bank of India (SBI)</option>
                             <option value="axis">Axis Bank</option>
@@ -245,14 +230,14 @@
 
                     <!-- Account View Dropdown Selector -->
                     <div class="relative">
-                        <select id="account-view-selector" onchange="filterDashboardByAccount(this.value)" class="pl-4 pr-9 py-2.5 rounded-full border border-purple-200/80 bg-white/90 font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-all">
+                        <select id="account-view-selector" onchange="filterDashboardByAccount(this.value)" class="pl-4 pr-9 py-2.5 rounded-full border border-indigo-200/80 bg-white/90 font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-indigo-400 transition-all">
                             <option value="consolidated">🌐 All Accounts</option>
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-[10px] text-slate-400 pointer-events-none"></i>
                     </div>
 
                     <!-- Upload Action Button -->
-                    <label for="statement-upload" class="px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-500/25 hover:scale-105 transition-all cursor-pointer flex items-center gap-2">
+                    <label for="statement-upload" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-extrabold text-xs shadow-md shadow-indigo-500/25 hover:scale-105 transition-all cursor-pointer flex items-center gap-2">
                         <i class="fa-solid fa-plus text-xs"></i>
                         <span>Add Statement(s)</span>
                     </label>
@@ -262,6 +247,32 @@
 
             <!-- Scrollable Workspace Body -->
             <div class="flex-1 overflow-y-auto p-8 space-y-6" id="workspace-content">
+
+                <!-- Tier 2 Centered Floating Navigation Task Bar (Ultra-Spacious Glass Task Bar) -->
+                <div class="flex items-center justify-center py-1">
+                    <div class="nav-floating-bar">
+                        <button class="nav-pill-btn active" onclick="switchSubtab('dashboard')">
+                            <i class="fa-solid fa-house"></i>
+                            <span>Dashboard</span>
+                        </button>
+                        <button class="nav-pill-btn" onclick="switchSubtab('ledger')">
+                            <i class="fa-solid fa-receipt"></i>
+                            <span>Transactions</span>
+                        </button>
+                        <button class="nav-pill-btn" onclick="switchSubtab('abb')">
+                            <i class="fa-solid fa-chart-column"></i>
+                            <span>ABB Analysis</span>
+                        </button>
+                        <button class="nav-pill-btn" onclick="switchSubtab('credit')">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Credit Risk AI</span>
+                        </button>
+                        <button class="nav-pill-btn" onclick="switchSubtab('comparison')">
+                            <i class="fa-solid fa-code-compare"></i>
+                            <span>Account Comparison</span>
+                        </button>
+                    </div>
+                </div>
 
                 <!-- Dynamic Loader Overlay -->
                 <div id="analyzer-loader" class="hidden flex flex-col items-center justify-center py-20 animate-fade-in">
