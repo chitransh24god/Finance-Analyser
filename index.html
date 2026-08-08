@@ -220,6 +220,29 @@
 
                 <!-- Right Section: Action Controls -->
                 <div class="flex items-center gap-3">
+                    <!-- Bank Format Selection Pill Dropdown -->
+                    <div class="relative">
+                        <select id="bank-selector" class="pl-4 pr-9 py-2.5 rounded-full border border-purple-200/80 bg-white/90 font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-all">
+                            <option value="auto">🔍 Auto-Detect Bank</option>
+                            <option value="sbi">State Bank of India (SBI)</option>
+                            <option value="axis">Axis Bank</option>
+                            <option value="canara">Canara Bank</option>
+                            <option value="hdfc">HDFC Bank</option>
+                            <option value="icici">ICICI Bank</option>
+                            <option value="idfc">IDFC First Bank</option>
+                            <option value="kotak">Kotak Mahindra</option>
+                            <option value="pnb">Punjab National (PNB)</option>
+                            <option value="bob">Bank of Baroda</option>
+                            <option value="union">Union Bank</option>
+                            <option value="indusind">IndusInd Bank</option>
+                            <option value="cbi">Central Bank</option>
+                            <option value="boi">Bank of India</option>
+                            <option value="yes">Yes Bank</option>
+                            <option value="kalupur">Kalupur Bank</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-[10px] text-slate-400 pointer-events-none"></i>
+                    </div>
+
                     <!-- Account View Dropdown Selector -->
                     <div class="relative">
                         <select id="account-view-selector" onchange="filterDashboardByAccount(this.value)" class="pl-4 pr-9 py-2.5 rounded-full border border-purple-200/80 bg-white/90 font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-all">
