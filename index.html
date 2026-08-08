@@ -333,6 +333,49 @@
                     <!-- SUBTAB: BENTO DASHBOARD (Matching Reference Image Layout) -->
                     <div id="subtab-dashboard" class="subtab-content space-y-6">
                         
+                        <!-- Account Identity & Bank Metadata Hero Card Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Card 1: Account Holder Name -->
+                            <div class="bento-card bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-white border border-indigo-200/80 shadow-md">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold uppercase tracking-wider text-indigo-600">Account Holder Name</span>
+                                    <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+                                </div>
+                                <div id="meta-name" class="text-xl font-black text-slate-900 mt-2 truncate">Not Available</div>
+                                <div class="text-[11px] font-bold text-slate-400 mt-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-check text-emerald-500 text-[10px]"></i> Verified Customer Identity
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Account Number -->
+                            <div class="bento-card bg-gradient-to-br from-purple-500/10 via-indigo-500/5 to-white border border-purple-200/80 shadow-md">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold uppercase tracking-wider text-purple-600">Account Number</span>
+                                    <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-hashtag"></i>
+                                    </div>
+                                </div>
+                                <div id="meta-account" class="text-xl font-black text-slate-900 mt-2 truncate">Not Available</div>
+                                <div class="text-[11px] font-bold text-slate-400 mt-1 flex items-center gap-1">
+                                    <i class="fa-solid fa-shield-halved text-purple-500 text-[10px]"></i> Authenticated Bank Ledger
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Bank Name & Statement Period -->
+                            <div class="bento-card bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-white border border-emerald-200/80 shadow-md">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Bank Statement Source</span>
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs">
+                                        <i class="fa-solid fa-building-columns"></i>
+                                    </div>
+                                </div>
+                                <div id="meta-bank" class="text-xl font-black text-slate-900 mt-2 truncate">Auto-Detected</div>
+                                <div id="meta-period" class="text-[11px] font-bold text-slate-500 mt-1 truncate">Period: Not Available</div>
+                            </div>
+                        </div>
+                        
                         <!-- Balance Extremes Trio Card Grid (Latest, Highest & Lowest Balance) -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <!-- Latest / Closing Balance -->
