@@ -146,18 +146,51 @@ function switchSubtab(subtabId) {
 // ==========================================
 function initUploadListener() {
     const fileInput = document.getElementById("statement-upload");
-    if (!fileInput) return;
-    
-    fileInput.addEventListener("change", (e) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length === 0) return;
+    const dropzone = document.getElementById("upload-dropzone-card");
 
-        state.pendingFilesQueue = files;
-        state.parsedStatementsList = [];
-        state.currentEncryptedFileIndex = 0;
-        
-        processUploadedStatementsQueue(0, "");
-    });
+    if (fileInput) {
+        fileInput.addEventListener("change", (e) => {
+            handleSelectedFiles(Array.from(e.target.files || []));
+        });
+    }
+
+    if (dropzone) {
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.add("border-rose-500", "bg-rose-50/50");
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropzone.classList.remove("border-rose-500", "bg-rose-50/50");
+            }, false);
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = Array.from(dt.files || []).filter(f => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
+            if (files.length > 0) {
+                handleSelectedFiles(files);
+            } else {
+                alert("Please drop valid PDF bank statement file(s).");
+            }
+        });
+    }
+}
+
+function handleSelectedFiles(files) {
+    if (!files || files.length === 0) return;
+
+    state.pendingFilesQueue = files;
+    state.parsedStatementsList = [];
+    state.currentEncryptedFileIndex = 0;
+    
+    processUploadedStatementsQueue(0, "");
 }
 
 function readFileAsArrayBuffer(file) {
@@ -435,7 +468,12 @@ function finalizeConsolidatedStatements() {
 
     renderAnalyzerDashboard(state.parsedData);
     renderAccountComparisonTab();
-    switchSubtab('dashboard');
+
+    if (state.parsedStatementsList && state.parsedStatementsList.length > 1) {
+        switchSubtab('comparison');
+    } else {
+        switchSubtab('dashboard');
+    }
 
     loader.classList.add("hidden");
     results.classList.remove("hidden");
