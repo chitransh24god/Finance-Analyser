@@ -9,7 +9,7 @@ async function downloadReport(reportType = "consolidated_full") {
         return;
     }
 
-    const { metadata, transactions, monthly_abb, abb_summary, assessment, statementsList } = state.parsedData;
+    const { metadata, transactions, monthly_abb, abb_summary, assessment, statementsList, evaluatedAccounts } = state.parsedData;
     const workbook = new ExcelJS.Workbook();
     let filename = "Consolidated_Financial_Analysis_Report";
 
@@ -135,7 +135,38 @@ async function downloadReport(reportType = "consolidated_full") {
         }
     });
 
-    // SHEET 4: Individual Statements Breakdown (if multi-statement)
+    // SHEET 4: Account Superiority Comparison (if multi-account)
+    if (evaluatedAccounts && evaluatedAccounts.length > 0) {
+        const wsComp = workbook.addWorksheet("Account Superiority Ranking");
+        wsComp.columns = [
+            { header: "Superiority Rank", key: "rank", width: 25 },
+            { header: "Bank Identity Name", key: "bank", width: 25 },
+            { header: "Account Number", key: "acc", width: 22 },
+            { header: "6-Month ABB (₹)", key: "abb6m", width: 20 },
+            { header: "Total Credits (₹)", key: "cr", width: 18 },
+            { header: "Total Debits (₹)", key: "dr", width: 18 },
+            { header: "Net Cash Flow (₹)", key: "net", width: 20 },
+            { header: "Health Score (0-100)", key: "score", width: 22 }
+        ];
+
+        evaluatedAccounts.forEach(acc => {
+            wsComp.addRow({
+                rank: acc.rankTitle,
+                bank: acc.bank_name,
+                acc: acc.account_number,
+                abb6m: acc.abb_6m,
+                cr: acc.totalCredits,
+                dr: acc.totalDebits,
+                net: acc.netCashFlow,
+                score: `${acc.healthScore} / 100`
+            });
+        });
+
+        styleTableHeaders(wsComp, primaryBlue, headerFontColor, fontName);
+        styleDataGrid(wsComp, [4, 5, 6, 7], fontName, lightZebra);
+    }
+
+    // SHEET 5: Individual Statements Breakdown (if multi-statement)
     if (statementsList && statementsList.length > 0) {
         const wsBreakdown = workbook.addWorksheet("Statements Breakdown");
         wsBreakdown.columns = [

@@ -20,6 +20,7 @@ const state = {
 // Global chart references to allow clean redraws
 let ledgerChartInstance = null;
 let abbChartInstance = null;
+let comparisonChartInstance = null;
 
 // ==========================================
 // INITIALIZER
@@ -134,6 +135,8 @@ function switchSubtab(subtabId) {
             drawLedgerChart(state.parsedData.transactions);
         } else if (subtabId === 'abb') {
             drawAbbChart(state.parsedData.monthly_abb);
+        } else if (subtabId === 'comparison') {
+            renderAccountComparisonTab();
         }
     }
 }
@@ -257,6 +260,87 @@ function closePasswordModal() {
     document.getElementById("statement-upload").value = "";
 }
 
+function evaluateAccountSuperiority(statementsList) {
+    if (!statementsList || statementsList.length === 0) return [];
+
+    const evaluated = statementsList.map((st, idx) => {
+        const cleanedTx = (st.rawTransactions || []).map(tx => ({
+            Date: tx.Date,
+            Particulars: tx.Particulars,
+            Debit: parseFloat(tx.Debit) || 0.0,
+            Credit: parseFloat(tx.Credit) || 0.0,
+            Balance: parseFloat(tx.Balance) || 0.0
+        })).sort((a, b) => new Date(a.Date) - new Date(b.Date));
+
+        const startDate = cleanedTx.length > 0 ? cleanedTx[0].Date : "2025-01-01";
+        const endDate = cleanedTx.length > 0 ? cleanedTx[cleanedTx.length - 1].Date : "2025-06-30";
+
+        const { monthly_abb, abb_summary } = calculateMonthlyAbbJS(cleanedTx, startDate, endDate);
+        const assessment = analyzeCreditProfileJS(cleanedTx, monthly_abb, abb_summary);
+
+        let totalCredits = 0;
+        let totalDebits = 0;
+        cleanedTx.forEach(tx => {
+            totalCredits += tx.Credit;
+            totalDebits += tx.Debit;
+        });
+        const netCashFlow = totalCredits - totalDebits;
+
+        let score = 50;
+        const abbVal = abb_summary.abb_6m || abb_summary.abb_1m || 0;
+        
+        if (abbVal >= 200000) score += 30;
+        else if (abbVal >= 100000) score += 20;
+        else if (abbVal >= 50000) score += 10;
+
+        if (netCashFlow > 0) score += 15;
+        if (assessment.metrics.negative_count === 0) score += 5;
+
+        score = Math.min(99, Math.max(35, score));
+
+        return {
+            index: idx + 1,
+            filename: st.filename,
+            bank_name: st.metadata.bank_name || "Auto-Detected",
+            account_number: st.metadata.account_number || "N/A",
+            customer_name: st.metadata.customer_name || "N/A",
+            txCount: cleanedTx.length,
+            totalCredits,
+            totalDebits,
+            netCashFlow,
+            abb_1m: abb_summary.abb_1m,
+            abb_3m: abb_summary.abb_3m,
+            abb_6m: abb_summary.abb_6m,
+            overall_grade: assessment.overall_grade,
+            healthScore: score
+        };
+    });
+
+    evaluated.sort((a, b) => {
+        if (b.healthScore !== a.healthScore) return b.healthScore - a.healthScore;
+        return b.abb_6m - a.abb_6m;
+    });
+
+    evaluated.forEach((acc, rankIdx) => {
+        acc.rank = rankIdx + 1;
+        if (rankIdx === 0) {
+            acc.rankTitle = "#1 Superior Account";
+            acc.badgeColor = "amber";
+            acc.icon = "fa-trophy";
+        } else if (rankIdx === 1) {
+            acc.rankTitle = "#2 Secondary Performer";
+            acc.badgeColor = "slate";
+            acc.icon = "fa-medal";
+        } else {
+            acc.rankTitle = `#${rankIdx + 1} Underperforming`;
+            acc.badgeColor = "rose";
+            acc.icon = "fa-triangle-exclamation";
+        }
+    });
+
+    return evaluated;
+}
+
 function finalizeConsolidatedStatements() {
     const loader = document.getElementById("analyzer-loader");
     const results = document.getElementById("analyzer-results");
@@ -298,10 +382,8 @@ function finalizeConsolidatedStatements() {
         });
     });
 
-    // Sort all transactions chronologically by Date
     allTxList.sort((a, b) => new Date(a.Date) - new Date(b.Date));
 
-    // Deduplicate exact duplicate transaction rows
     const uniqueTxMap = new Map();
     const deduplicatedTxList = [];
     allTxList.forEach(tx => {
@@ -338,22 +420,154 @@ function finalizeConsolidatedStatements() {
         abb_summary
     );
 
+    updateLoaderStatus("Evaluating Account Superiority & Comparative Rankings...");
+    const evaluatedAccounts = evaluateAccountSuperiority(state.parsedStatementsList);
+
     state.parsedData = {
         metadata: consolidatedMetadata,
         transactions: deduplicatedTxList,
         monthly_abb,
         abb_summary,
         assessment,
-        statementsList: state.parsedStatementsList
+        statementsList: state.parsedStatementsList,
+        evaluatedAccounts
     };
 
     renderAnalyzerDashboard(state.parsedData);
+    renderAccountComparisonTab();
     switchSubtab('dashboard');
 
     loader.classList.add("hidden");
     results.classList.remove("hidden");
     errorModal.classList.add("hidden");
     document.getElementById("statement-upload").value = "";
+}
+
+function renderAccountComparisonTab() {
+    if (!state.parsedData || !state.parsedData.evaluatedAccounts) return;
+
+    const evaluated = state.parsedData.evaluatedAccounts;
+    if (evaluated.length === 0) return;
+
+    const winner = evaluated[0];
+    if (document.getElementById("winner-account-name")) {
+        document.getElementById("winner-account-name").innerText = `${winner.bank_name} (${winner.account_number})`;
+    }
+    if (document.getElementById("winner-bank-badge")) {
+        document.getElementById("winner-bank-badge").innerText = winner.filename;
+    }
+    if (document.getElementById("winner-score-val")) {
+        document.getElementById("winner-score-val").innerText = `${winner.healthScore} / 100`;
+    }
+    if (document.getElementById("winner-rationale-text")) {
+        document.getElementById("winner-rationale-text").innerText = `Ranked #1 Superior Account with highest 6-Month ABB of ${formatCurrencyJS(winner.abb_6m)} and positive net cashflow of ${formatCurrencyJS(winner.netCashFlow)}.`;
+    }
+    if (document.getElementById("comparison-count-badge")) {
+        document.getElementById("comparison-count-badge").innerText = `${evaluated.length} Account${evaluated.length > 1 ? 's' : ''} Evaluated`;
+    }
+
+    const grid = document.getElementById("comparison-cards-grid");
+    if (grid) {
+        grid.innerHTML = "";
+        evaluated.forEach(acc => {
+            const isWinner = acc.rank === 1;
+            const badgeClass = isWinner ? "bg-amber-100 text-amber-700" : (acc.rank === 2 ? "bg-slate-100 text-slate-700" : "bg-rose-100 text-rose-700");
+            const netColor = acc.netCashFlow >= 0 ? "text-emerald-600" : "text-rose-600";
+
+            grid.innerHTML += `
+                <div class="aesthetic-card space-y-4 relative ${isWinner ? 'border-2 border-amber-400 shadow-lg shadow-amber-500/10' : ''}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-extrabold px-3 py-1 rounded-full ${badgeClass}">
+                            <i class="fa-solid ${acc.icon} mr-1"></i> ${acc.rankTitle}
+                        </span>
+                        <span class="text-xs font-bold text-slate-400 truncate max-w-[120px]">${acc.filename}</span>
+                    </div>
+
+                    <div>
+                        <h4 class="font-extrabold text-slate-900 text-base">${acc.bank_name}</h4>
+                        <div class="text-xs font-semibold text-slate-400 mt-0.5">Acc #: ${acc.account_number}</div>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-rose-100/50">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-semibold text-slate-500">6-Month ABB</span>
+                            <span class="font-extrabold text-slate-900">${formatCurrencyJS(acc.abb_6m)}</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="font-semibold text-slate-500">Total Inflows</span>
+                            <span class="font-bold text-emerald-600">${formatCurrencyJS(acc.totalCredits)}</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="font-semibold text-slate-500">Total Outflows</span>
+                            <span class="font-bold text-rose-500">${formatCurrencyJS(acc.totalDebits)}</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="font-semibold text-slate-500">Net Cash Flow</span>
+                            <span class="font-extrabold ${netColor}">${formatCurrencyJS(acc.netCashFlow)}</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-rose-100/50 flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-500">Credit Rating</span>
+                        <span class="font-black text-rose-500">${acc.overall_grade} (${acc.healthScore}/100)</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    drawComparisonChart(evaluated);
+}
+
+function drawComparisonChart(evaluatedAccounts) {
+    const ctx = document.getElementById("comparisonChart");
+    if (!ctx) return;
+
+    if (comparisonChartInstance) {
+        comparisonChartInstance.destroy();
+    }
+
+    const labels = evaluatedAccounts.map(a => `${a.bank_name}\n(${a.account_number})`);
+    const abbValues = evaluatedAccounts.map(a => a.abb_6m);
+    const inflowValues = evaluatedAccounts.map(a => a.totalCredits);
+
+    comparisonChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '6-Month ABB (₹)',
+                    data: abbValues,
+                    backgroundColor: 'rgba(255, 94, 126, 0.85)',
+                    borderRadius: 10
+                },
+                {
+                    label: 'Total Inflow Volume (₹)',
+                    data: inflowValues,
+                    backgroundColor: 'rgba(56, 182, 255, 0.85)',
+                    borderRadius: 10
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { font: { family: 'Outfit', size: 12, weight: 'bold' } } }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11, family: 'Outfit' } }
+                },
+                y: {
+                    grid: { color: 'rgba(240, 220, 226, 0.4)' },
+                    ticks: { font: { size: 11, family: 'Outfit' } }
+                }
+            }
+        }
+    });
 }
 
 function updateLoaderStatus(text) {

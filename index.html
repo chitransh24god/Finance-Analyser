@@ -145,9 +145,19 @@
                             <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
                         </button>
 
-                        <button onclick="exportExcel()" class="sidebar-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-slate-600 transition-all">
+                        <button onclick="switchSubtab('comparison')" class="sidebar-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-slate-600 transition-all">
                             <div class="flex items-center gap-3">
                                 <div class="w-7 h-7 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-code-compare"></i>
+                                </div>
+                                <span>Account Comparison</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-300"></i>
+                        </button>
+
+                        <button onclick="exportExcel()" class="sidebar-tab-btn w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-slate-600 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xs">
                                     <i class="fa-solid fa-file-excel"></i>
                                 </div>
                                 <span>Export Excel</span>
@@ -194,6 +204,7 @@
                     <button class="nav-pill-btn" onclick="switchSubtab('ledger')">Transactions</button>
                     <button class="nav-pill-btn" onclick="switchSubtab('abb')">ABB Analysis</button>
                     <button class="nav-pill-btn" onclick="switchSubtab('credit')">Credit Risk</button>
+                    <button class="nav-pill-btn" onclick="switchSubtab('comparison')">Account Comparison</button>
                 </div>
 
                 <!-- Top Right Action Controls -->
@@ -379,6 +390,54 @@
                                 <h3 class="font-extrabold text-slate-900 text-base mb-3">Recommended Loan Eligibility</h3>
                                 <div id="loan-eligibility-val" class="text-3xl font-black text-slate-900 mb-2">₹0.00</div>
                                 <p class="text-xs text-slate-500">Based on 6-month average daily balance multiplier.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUBTAB: MULTI-ACCOUNT COMPARISON & SUPERIORITY RANKING -->
+                    <div id="subtab-comparison" class="subtab-content hidden space-y-6">
+                        <!-- Superiority Winner Banner -->
+                        <div id="superiority-podium-card" class="aesthetic-card bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-purple-500/10 border-2 border-amber-300/80 rounded-3xl p-6 relative overflow-hidden">
+                            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-amber-500/30 flex-shrink-0">
+                                        <i class="fa-solid fa-trophy"></i>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-extrabold uppercase tracking-wider text-amber-600 bg-amber-100 px-3 py-0.5 rounded-full">#1 Superior Account</span>
+                                            <span id="winner-bank-badge" class="text-xs font-bold text-slate-500">Auto-Evaluated</span>
+                                        </div>
+                                        <h3 id="winner-account-name" class="text-xl font-black text-slate-900 mt-1">Primary Superior Performer</h3>
+                                        <p id="winner-rationale-text" class="text-xs text-slate-600 mt-0.5">Highest average daily balance and strongest liquidity stability across analyzed accounts.</p>
+                                    </div>
+                                </div>
+                                <div class="text-right bg-white/80 p-4 rounded-2xl border border-amber-200/80 shadow-sm flex-shrink-0">
+                                    <div class="text-[11px] font-bold text-amber-600 uppercase">Health Score</div>
+                                    <div id="winner-score-val" class="text-2xl font-black text-slate-900">98 / 100</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Side-by-Side Accounts Comparison Grid -->
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-extrabold text-slate-800 text-base">Comparative Account Breakdown</h3>
+                                <span id="comparison-count-badge" class="text-xs font-bold text-rose-500 bg-rose-50 px-3 py-1 rounded-full">Statements Evaluated</span>
+                            </div>
+                            <div id="comparison-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- Dynamic comparison cards rendered by app.js -->
+                            </div>
+                        </div>
+
+                        <!-- Comparative Visual Chart -->
+                        <div class="aesthetic-card">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-extrabold text-slate-900 text-base">Comparative ABB & Inflow Performance Chart</h3>
+                                <span class="text-xs font-bold text-slate-400">Side-by-Side Liquidity</span>
+                            </div>
+                            <div class="h-80 w-full">
+                                <canvas id="comparisonChart"></canvas>
                             </div>
                         </div>
                     </div>
