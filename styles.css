@@ -1,32 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --bg-main: #F5F4F8;
-    --bg-surface: #FFFFFF;
-    --bg-card: #FFFFFF;
+    --bg-main: #F4F3F8;
+    --bg-surface: rgba(255, 255, 255, 0.75);
     
     --primary-lilac: #7C5CFC;
     --primary-lilac-hover: #6339F9;
-    --lilac-soft: #EDE8FF;
-    --lilac-ultra-light: #F4F0FF;
+    --lilac-soft: rgba(237, 232, 255, 0.75);
+    --lilac-ultra-light: rgba(244, 240, 255, 0.6);
     
     --mint-accent: #10B981;
-    --mint-soft: #D1FAE5;
+    --mint-soft: rgba(209, 250, 229, 0.7);
     --mint-dark: #059669;
     
     --dark-pill: #18181B;
-    --dark-pill-hover: #27272A;
     
-    --border-subtle: rgba(230, 225, 240, 0.7);
-    --border-glass: rgba(255, 255, 255, 0.9);
+    --border-glass: rgba(255, 255, 255, 0.85);
+    --border-subtle: rgba(230, 220, 245, 0.6);
     
     --text-dark: #111827;
     --text-muted: #6B7280;
     --text-soft: #9CA3AF;
     
-    --shadow-floating: 0 25px 60px -15px rgba(124, 92, 252, 0.08);
-    --shadow-card: 0 14px 36px -8px rgba(135, 120, 160, 0.07);
-    --shadow-bento: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+    --shadow-floating: 0 30px 70px -15px rgba(124, 92, 252, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    --shadow-card: 0 16px 40px -10px rgba(135, 120, 160, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --shadow-bento: 0 12px 32px -6px rgba(124, 92, 252, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 body {
@@ -38,15 +36,15 @@ body {
     user-select: none;
 }
 
-/* Ambient Soft Lilac Background Glow */
+/* Vibrant Soft Background Blobs */
 .ambient-blob-1 {
     position: absolute;
     top: -15%;
     left: -10%;
-    width: 55vw;
-    height: 55vw;
-    background: radial-gradient(circle, rgba(237, 232, 255, 0.6) 0%, rgba(245, 244, 248, 0) 70%);
-    filter: blur(90px);
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(237, 232, 255, 0.7) 0%, rgba(244, 243, 248, 0) 70%);
+    filter: blur(100px);
     animation: blobFloat 16s ease-in-out infinite alternate;
 }
 
@@ -54,10 +52,10 @@ body {
     position: absolute;
     bottom: -20%;
     right: -10%;
-    width: 60vw;
-    height: 60vw;
-    background: radial-gradient(circle, rgba(209, 250, 229, 0.5) 0%, rgba(245, 244, 248, 0) 70%);
-    filter: blur(100px);
+    width: 65vw;
+    height: 65vw;
+    background: radial-gradient(circle, rgba(209, 250, 229, 0.6) 0%, rgba(244, 243, 248, 0) 70%);
+    filter: blur(110px);
     animation: blobFloat 20s ease-in-out infinite alternate-reverse;
 }
 
@@ -67,24 +65,26 @@ body {
     100% { transform: translate(-15px, 25px) scale(0.97); }
 }
 
-/* Main App Frame Container */
+/* Glass Floating Canvas Container */
 .app-frame-container {
     width: calc(100vw - 40px);
     height: calc(100vh - 40px);
     margin: 20px auto;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    border: 1px solid var(--border-glass);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    border: 1.5px solid var(--border-glass);
     border-radius: 36px;
     box-shadow: var(--shadow-floating);
     overflow: hidden;
 }
 
-/* Sidebar Custom Styling */
+/* Frosted Glass Sidebar */
 .sidebar-container {
-    background: #FFFFFF;
-    border-right: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-right: 1.5px solid rgba(255, 255, 255, 0.7);
     padding: 24px 18px;
     display: flex;
     flex-direction: column;
@@ -92,7 +92,7 @@ body {
 }
 
 .search-pill-input {
-    background: #F4F3F8;
+    background: rgba(244, 243, 248, 0.8);
     border: 1px solid rgba(230, 225, 240, 0.8);
     border-radius: 20px;
     padding: 10px 16px 10px 36px;
@@ -109,7 +109,7 @@ body {
     box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.12);
 }
 
-/* Vertical Sidebar Buttons */
+/* Sidebar Tab Buttons */
 .sidebar-tab-btn {
     background: transparent;
     color: var(--text-muted);
@@ -119,7 +119,7 @@ body {
 }
 
 .sidebar-tab-btn:hover {
-    background: var(--lilac-soft);
+    background: rgba(237, 232, 255, 0.6);
     color: var(--primary-lilac);
     transform: translateX(4px);
 }
@@ -138,8 +138,9 @@ body {
 
 /* Header Top Widgets & Pill Tabs */
 .header-widget-pill {
-    background: #FFFFFF;
-    border: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--border-glass);
     border-radius: 9999px;
     padding: 8px 18px;
     font-size: 12px;
@@ -171,27 +172,31 @@ body {
     box-shadow: 0 8px 20px -4px rgba(124, 92, 252, 0.35);
 }
 
-/* Bento Dashboard Cards */
+/* Enhanced Frosted Glass Bento Cards */
 .bento-card {
-    background: #FFFFFF;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: 32px;
     padding: 24px;
-    border: 1px solid var(--border-subtle);
+    border: 1.5px solid var(--border-glass);
     box-shadow: var(--shadow-bento);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .bento-card:hover {
-    box-shadow: 0 18px 40px -10px rgba(124, 92, 252, 0.1);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 20px 45px -10px rgba(124, 92, 252, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
+    transform: translateY(-3px);
 }
 
 .bento-card-lilac {
-    background: var(--lilac-soft);
-    border-color: rgba(197, 180, 255, 0.5);
+    background: rgba(237, 232, 255, 0.75);
+    backdrop-filter: blur(20px);
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
 }
 
-/* Black Pill Percentage Badge (matching reference image "+10%", "-2%") */
+/* Black Pill Percentage Badge */
 .black-pill-badge {
     background: var(--dark-pill);
     color: #FFFFFF;
@@ -201,13 +206,13 @@ body {
     border-radius: 9999px;
 }
 
-/* Circular SVG Liquidity Health Gauge */
+/* SVG Liquidity Gauge */
 .donut-svg-gauge {
     transform: rotate(-90deg);
 }
 
 .donut-bg-circle {
-    stroke: #E5E7EB;
+    stroke: rgba(229, 231, 235, 0.8);
 }
 
 .donut-fill-circle {
@@ -244,7 +249,7 @@ body {
 }
 
 .aesthetic-table th {
-    background: #F9F8FD;
+    background: rgba(249, 248, 253, 0.8);
     color: var(--text-muted);
     font-size: 11px;
     font-weight: 700;
@@ -265,5 +270,5 @@ body {
 }
 
 .aesthetic-table tr:hover td {
-    background: #F4F2FA;
+    background: rgba(244, 242, 250, 0.8);
 }

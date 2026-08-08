@@ -211,6 +211,10 @@
 
                 <!-- Top Right Controls & Upload Action Pill -->
                 <div class="flex items-center gap-3">
+                    <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/70 backdrop-blur-md border border-purple-100 shadow-sm text-[11px] font-bold text-slate-600">
+                        <span class="text-purple-600">💡 Multi-PDF Tip:</span> Hold <kbd class="px-1.5 py-0.5 bg-slate-200/80 rounded font-mono text-[10px] font-bold">CTRL</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-200/80 rounded font-mono text-[10px] font-bold">⌘</kbd> key to select 2+ files
+                    </div>
+
                     <div class="relative hidden xl:block">
                         <select id="account-view-selector" onchange="filterDashboardByAccount(this.value)" class="pl-3.5 pr-8 py-2 rounded-full border border-purple-200/80 bg-white font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-all">
                             <option value="consolidated">🌐 All Accounts</option>
@@ -266,14 +270,17 @@
                         <!-- BENTO ROW 1: Quick Action Cards (Matching Reference: Add Money, Send Money, Upcoming Bills) -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <!-- Bento Card 1: Add Money Style -> Upload Statement -->
-                            <div class="bento-card flex items-center justify-between cursor-pointer hover:border-purple-400" onclick="document.getElementById('statement-upload').click()">
+                            <div class="bento-card flex items-center justify-between cursor-pointer hover:border-purple-400 group" onclick="document.getElementById('statement-upload').click()">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-full border-2 border-purple-300 text-purple-600 flex items-center justify-center text-xl font-bold bg-purple-50">
+                                    <div class="w-12 h-12 rounded-full border-2 border-purple-300 text-purple-600 flex items-center justify-center text-xl font-bold bg-purple-50 group-hover:scale-110 transition-transform">
                                         <i class="fa-solid fa-plus"></i>
                                     </div>
                                     <div>
-                                        <h4 class="font-extrabold text-slate-900 text-base">Add Statement</h4>
-                                        <p class="text-xs text-slate-400 mt-0.5">Upload new PDF file</p>
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="font-extrabold text-slate-900 text-base">Add Statement(s)</h4>
+                                            <span class="text-[10px] font-extrabold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200">Multi-PDF</span>
+                                        </div>
+                                        <p class="text-xs text-purple-600 font-semibold mt-0.5">💡 Hold <kbd class="px-1.5 py-0.5 bg-slate-100 border rounded text-[10px] font-mono font-bold text-slate-700">CTRL</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-100 border rounded text-[10px] font-mono font-bold text-slate-700">⌘</kbd> to select 2+ PDFs</p>
                                     </div>
                                 </div>
                                 <i class="fa-solid fa-chevron-right text-xs text-slate-300"></i>
