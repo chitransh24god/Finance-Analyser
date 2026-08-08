@@ -146,7 +146,6 @@ function switchSubtab(subtabId) {
 // ==========================================
 function initUploadListener() {
     const fileInput = document.getElementById("statement-upload");
-    const dropzone = document.getElementById("upload-dropzone-card");
 
     if (fileInput) {
         fileInput.addEventListener("change", (e) => {
@@ -154,33 +153,32 @@ function initUploadListener() {
         });
     }
 
-    if (dropzone) {
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dropzone.classList.add("border-rose-500", "bg-rose-50/50");
-            }, false);
-        });
+    // Attach drag & drop listeners to full workspace window
+    ['dragenter', 'dragover'].forEach(eventName => {
+        window.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dropzone.classList.remove("border-rose-500", "bg-rose-50/50");
-            }, false);
-        });
+    ['dragleave', 'drop'].forEach(eventName => {
+        window.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
 
-        dropzone.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            const files = Array.from(dt.files || []).filter(f => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
-            if (files.length > 0) {
-                handleSelectedFiles(files);
-            } else {
-                alert("Please drop valid PDF bank statement file(s).");
-            }
-        });
-    }
+    window.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (!dt || !dt.files || dt.files.length === 0) return;
+        
+        const files = Array.from(dt.files || []).filter(f => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"));
+        if (files.length > 0) {
+            handleSelectedFiles(files);
+        } else {
+            alert("Please drop valid PDF bank statement file(s).");
+        }
+    });
 }
 
 function handleSelectedFiles(files) {
