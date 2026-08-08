@@ -466,6 +466,7 @@ function finalizeConsolidatedStatements() {
         evaluatedAccounts
     };
 
+    populateAccountViewSelector(state.parsedStatementsList);
     renderAnalyzerDashboard(state.parsedData);
     renderAccountComparisonTab();
 
@@ -479,6 +480,68 @@ function finalizeConsolidatedStatements() {
     results.classList.remove("hidden");
     errorModal.classList.add("hidden");
     document.getElementById("statement-upload").value = "";
+}
+
+function populateAccountViewSelector(statementsList) {
+    const selector = document.getElementById("account-view-selector");
+    if (!selector) return;
+
+    selector.innerHTML = `<option value="consolidated">🌐 All Accounts (Consolidated View)</option>`;
+
+    if (statementsList && statementsList.length > 0) {
+        statementsList.forEach((st, idx) => {
+            const bankName = st.metadata.bank_name || "Bank Statement";
+            const accNum = st.metadata.account_number || "N/A";
+            const option = document.createElement("option");
+            option.value = st.filename;
+            option.innerText = `🏦 Account ${idx + 1}: ${bankName} (${accNum})`;
+            selector.appendChild(option);
+        });
+    }
+}
+
+function filterDashboardByAccount(selectedValue) {
+    if (!state.parsedData) return;
+
+    if (selectedValue === "consolidated") {
+        renderAnalyzerDashboard(state.parsedData);
+        return;
+    }
+
+    const selectedSt = state.parsedData.statementsList.find(st => st.filename === selectedValue);
+    if (!selectedSt) {
+        renderAnalyzerDashboard(state.parsedData);
+        return;
+    }
+
+    const cleanedTx = (selectedSt.rawTransactions || []).map(tx => ({
+        Date: tx.Date,
+        Particulars: tx.Particulars,
+        Debit: parseFloat(tx.Debit) || 0.0,
+        Credit: parseFloat(tx.Credit) || 0.0,
+        Balance: parseFloat(tx.Balance) || 0.0,
+        StatementSource: selectedSt.filename
+    })).sort((a, b) => new Date(a.Date) - new Date(b.Date));
+
+    const startDate = cleanedTx.length > 0 ? cleanedTx[0].Date : "2025-01-01";
+    const endDate = cleanedTx.length > 0 ? cleanedTx[cleanedTx.length - 1].Date : "2025-06-30";
+
+    const { monthly_abb, abb_summary } = calculateMonthlyAbbJS(cleanedTx, startDate, endDate);
+    const assessment = analyzeCreditProfileJS(cleanedTx, monthly_abb, abb_summary);
+
+    const individualData = {
+        metadata: {
+            ...selectedSt.metadata,
+            statements_count: 1
+        },
+        transactions: cleanedTx,
+        monthly_abb,
+        abb_summary,
+        assessment,
+        statementsList: [selectedSt]
+    };
+
+    renderAnalyzerDashboard(individualData);
 }
 
 function renderAccountComparisonTab() {

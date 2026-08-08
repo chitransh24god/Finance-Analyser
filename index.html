@@ -232,6 +232,14 @@
                         <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-xs text-slate-400 pointer-events-none"></i>
                     </div>
 
+                    <!-- Account View Filter Selector -->
+                    <div class="relative">
+                        <select id="account-view-selector" onchange="filterDashboardByAccount(this.value)" class="pl-4 pr-8 py-2.5 rounded-full border border-rose-200/80 bg-white font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-rose-300 transition-all">
+                            <option value="consolidated">🌐 All Accounts (Consolidated View)</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-xs text-slate-400 pointer-events-none"></i>
+                    </div>
+
                     <!-- Upload Statement Trigger Pill -->
                     <label for="statement-upload" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs shadow-md shadow-rose-500/25 hover:shadow-lg hover:scale-105 transition-all cursor-pointer flex items-center gap-2">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
