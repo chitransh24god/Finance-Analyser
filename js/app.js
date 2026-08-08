@@ -722,7 +722,40 @@ function updateLoaderStatus(text) {
     if (el) el.innerText = text;
 }
 
+function updateISTClock() {
+    const timeEl = document.getElementById("header-live-time");
+    const dateEl = document.getElementById("header-live-date");
+
+    const now = new Date();
+    
+    // Format Options for Indian Standard Time (IST)
+    const timeOptions = {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    };
+
+    const dateOptions = {
+        timeZone: 'Asia/Kolkata',
+        day: 'numeric',
+        month: 'short',
+        weekday: 'short'
+    };
+
+    if (timeEl) {
+        timeEl.innerText = now.toLocaleTimeString('en-IN', timeOptions);
+    }
+    if (dateEl) {
+        dateEl.innerText = `${now.toLocaleDateString('en-IN', dateOptions)} (IST)`;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    updateISTClock();
+    setInterval(updateISTClock, 1000);
+
     const pwdInput = document.getElementById("pdf-password-input");
     if (pwdInput) {
         pwdInput.addEventListener("keydown", (e) => {
