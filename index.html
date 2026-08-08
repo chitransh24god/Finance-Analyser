@@ -186,45 +186,51 @@
         <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
             
             <!-- Reference Style Header Bar with Time, Weather & Navigation Pills -->
-            <header class="h-20 px-8 flex items-center justify-between border-b border-purple-100/50 bg-white/40 backdrop-blur-md flex-shrink-0">
-                <!-- Top Widgets Pill (Matching reference: 12:45PM | 5 Dec, Monday ☁️ 16°C) -->
+            <header class="h-20 px-8 flex items-center justify-between border-b border-white/60 bg-white/40 backdrop-blur-2xl flex-shrink-0 z-20">
+                <!-- Left Section: Integrated Time & Weather Glass Badge -->
                 <div class="flex items-center gap-3">
-                    <div class="header-widget-pill flex items-center gap-2">
-                        <i class="fa-regular fa-clock text-purple-600 text-xs"></i>
+                    <div class="header-widget-pill flex items-center gap-2.5 px-4 py-2 bg-white/80 border border-purple-100/80 shadow-sm text-xs font-bold text-slate-700">
+                        <i class="fa-regular fa-clock text-purple-600"></i>
                         <span id="header-live-time">12:45 PM</span>
-                    </div>
-                    <div class="header-widget-pill hidden md:flex items-center gap-2 text-slate-500">
-                        <span>5 Dec, Monday</span>
-                        <i class="fa-solid fa-cloud text-xs text-purple-400"></i>
-                        <span>16°C</span>
+                        <span class="text-slate-300">|</span>
+                        <span class="text-slate-500 font-semibold">5 Dec, Mon</span>
+                        <i class="fa-solid fa-cloud text-purple-400 text-[11px] ml-1"></i>
+                        <span class="text-slate-500 font-semibold">16°C</span>
                     </div>
                 </div>
 
-                <!-- Central Pill Navigation Bar -->
-                <div class="flex items-center gap-1.5 bg-white p-1.5 rounded-full border border-purple-100/70 shadow-sm">
-                    <button class="nav-pill-btn active" onclick="switchSubtab('dashboard')">Home</button>
-                    <button class="nav-pill-btn" onclick="switchSubtab('ledger')">Transactions</button>
-                    <button class="nav-pill-btn" onclick="switchSubtab('abb')">ABB</button>
-                    <button class="nav-pill-btn" onclick="switchSubtab('credit')">Credit Risk</button>
-                    <button class="nav-pill-btn" onclick="switchSubtab('comparison')">Comparison</button>
+                <!-- Central Section: Floating Pill Navigation Task Bar -->
+                <div class="flex items-center gap-2 bg-white/80 p-1.5 rounded-full border border-purple-100/80 shadow-sm backdrop-blur-xl">
+                    <button class="nav-pill-btn active" onclick="switchSubtab('dashboard')">
+                        <i class="fa-solid fa-house text-xs mr-1.5"></i>Dashboard
+                    </button>
+                    <button class="nav-pill-btn" onclick="switchSubtab('ledger')">
+                        <i class="fa-solid fa-receipt text-xs mr-1.5"></i>Transactions
+                    </button>
+                    <button class="nav-pill-btn" onclick="switchSubtab('abb')">
+                        <i class="fa-solid fa-chart-column text-xs mr-1.5"></i>ABB Analysis
+                    </button>
+                    <button class="nav-pill-btn" onclick="switchSubtab('credit')">
+                        <i class="fa-solid fa-shield-halved text-xs mr-1.5"></i>Credit Risk AI
+                    </button>
+                    <button class="nav-pill-btn" onclick="switchSubtab('comparison')">
+                        <i class="fa-solid fa-code-compare text-xs mr-1.5"></i>Account Comparison
+                    </button>
                 </div>
 
-                <!-- Top Right Controls & Upload Action Pill -->
+                <!-- Right Section: Action Controls -->
                 <div class="flex items-center gap-3">
-                    <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/70 backdrop-blur-md border border-purple-100 shadow-sm text-[11px] font-bold text-slate-600">
-                        <span class="text-purple-600">💡 Multi-PDF Tip:</span> Hold <kbd class="px-1.5 py-0.5 bg-slate-200/80 rounded font-mono text-[10px] font-bold">CTRL</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-200/80 rounded font-mono text-[10px] font-bold">⌘</kbd> key to select 2+ files
-                    </div>
-
-                    <div class="relative hidden xl:block">
-                        <select id="account-view-selector" onchange="filterDashboardByAccount(this.value)" class="pl-3.5 pr-8 py-2 rounded-full border border-purple-200/80 bg-white font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-all">
+                    <!-- Account View Dropdown Selector -->
+                    <div class="relative">
+                        <select id="account-view-selector" onchange="filterDashboardByAccount(this.value)" class="pl-4 pr-9 py-2.5 rounded-full border border-purple-200/80 bg-white/90 font-bold text-xs text-slate-700 focus:outline-none appearance-none cursor-pointer shadow-sm hover:border-purple-300 transition-all">
                             <option value="consolidated">🌐 All Accounts</option>
                         </select>
-                        <i class="fa-solid fa-chevron-down absolute right-3 top-3 text-[10px] text-slate-400 pointer-events-none"></i>
+                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-[10px] text-slate-400 pointer-events-none"></i>
                     </div>
 
-                    <!-- Upload Statement Action Button -->
+                    <!-- Upload Action Button -->
                     <label for="statement-upload" class="px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-500/25 hover:scale-105 transition-all cursor-pointer flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i>
+                        <i class="fa-solid fa-plus text-xs"></i>
                         <span>Add Statement(s)</span>
                     </label>
                     <input type="file" id="statement-upload" accept="application/pdf" multiple class="hidden">
