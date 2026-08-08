@@ -757,6 +757,33 @@ function renderAnalyzerDashboard(data) {
     if (document.getElementById("abb-3m")) document.getElementById("abb-3m").innerText = abb3mStr;
     if (document.getElementById("abb-6m")) document.getElementById("abb-6m").innerText = abb6mStr;
 
+    if (document.getElementById("bento-abb-1m")) document.getElementById("bento-abb-1m").innerText = abb1mStr;
+    if (document.getElementById("bento-abb-3m")) document.getElementById("bento-abb-3m").innerText = abb3mStr;
+    if (document.getElementById("bento-abb-6m")) document.getElementById("bento-abb-6m").innerText = abb6mStr;
+
+    // Update SVG Donut Gauge Score
+    let healthScore = 75;
+    if (data.assessment && data.assessment.abb_grade) {
+        if (data.assessment.abb_grade === "EXCELLENT") healthScore = 92;
+        else if (data.assessment.abb_grade === "GOOD") healthScore = 80;
+        else if (data.assessment.abb_grade === "MODERATE") healthScore = 65;
+        else healthScore = 48;
+    }
+    if (document.getElementById("donut-percentage-val")) {
+        document.getElementById("donut-percentage-val").innerText = `${healthScore}%`;
+    }
+    if (document.getElementById("donut-fill-ring")) {
+        // Circumference is 2 * PI * 42 = ~264
+        const strokeOffset = 264 - (264 * healthScore / 100);
+        document.getElementById("donut-fill-ring").style.strokeDashoffset = strokeOffset;
+    }
+
+    // Update Risk Alerts Counter Badge
+    if (document.getElementById("alerts-count-badge")) {
+        const alertsCount = (data.assessment && data.assessment.metrics) ? (data.assessment.metrics.negative_count || 0) : 0;
+        document.getElementById("alerts-count-badge").innerText = alertsCount;
+    }
+
     let totalCredits = 0;
     let totalDebits = 0;
     let crCount = 0;
@@ -769,8 +796,34 @@ function renderAnalyzerDashboard(data) {
         if (tx.Debit > 0) drCount++;
     });
 
+    if (document.getElementById("kpi-total-credits")) document.getElementById("kpi-total-credits").innerText = formatCurrencyJS(totalCredits);
+    if (document.getElementById("kpi-total-debits")) document.getElementById("kpi-total-debits").innerText = formatCurrencyJS(totalDebits);
+
     if (document.getElementById("side-total-credit")) document.getElementById("side-total-credit").innerText = `+${formatCurrencyJS(totalCredits)}`;
     if (document.getElementById("side-total-debit")) document.getElementById("side-total-debit").innerText = `-${formatCurrencyJS(totalDebits)}`;
+
+    // Populate Recent Transactions List in Bento Row 3
+    const recentBentoList = document.getElementById("recent-transactions-bento-list");
+    if (recentBentoList && data.transactions.length > 0) {
+        const recent3 = data.transactions.slice(-3).reverse();
+        recentBentoList.innerHTML = "";
+        recent3.forEach(tx => {
+            const isCredit = tx.Credit > 0;
+            const amtText = isCredit ? `+${formatCurrencyJS(tx.Credit)}` : `-${formatCurrencyJS(tx.Debit)}`;
+            const badgeClass = isCredit ? "text-emerald-600 font-bold" : "text-rose-500 font-bold";
+            const shortDesc = tx.Particulars.length > 24 ? tx.Particulars.substring(0, 24) + "..." : tx.Particulars;
+
+            recentBentoList.innerHTML += `
+                <div class="p-2.5 rounded-xl bg-slate-50 flex items-center justify-between">
+                    <div class="truncate pr-2">
+                        <div class="font-bold text-slate-800 text-xs truncate">${shortDesc}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">${tx.Date}</div>
+                    </div>
+                    <span class="text-xs ${badgeClass} flex-shrink-0">${amtText}</span>
+                </div>
+            `;
+        });
+    }
 
     renderTransactionsTable(data.transactions);
 
