@@ -205,11 +205,8 @@ async function processUploadedStatementsQueue(fileIndex = 0, currentPassword = "
     const results = document.getElementById("analyzer-results");
     const errorModal = document.getElementById("pdf-password-modal");
 
-    if (!state.pendingFilesQueue || state.pendingFilesQueue.length === 0) {
-        alert("No statement files selected. Please select your PDF statement(s) again.");
-        return;
-    }
-
+    const landing = document.getElementById("landing-phase");
+    if (landing) landing.classList.add("hidden");
     results.classList.add("hidden");
     loader.classList.remove("hidden");
 
@@ -826,6 +823,38 @@ function renderAnalyzerDashboard(data) {
         if (tx.Credit > 0) crCount++;
         if (tx.Debit > 0) drCount++;
     });
+
+    // Extract Latest Balance, Highest Balance, and Lowest Balance
+    if (data.transactions && data.transactions.length > 0) {
+        const balances = data.transactions.map(tx => tx.Balance);
+        const latestBal = data.transactions[data.transactions.length - 1].Balance;
+        const highestBal = Math.max(...balances);
+        const lowestBal = Math.min(...balances);
+
+        if (document.getElementById("kpi-latest-balance")) {
+            document.getElementById("kpi-latest-balance").innerText = formatCurrencyJS(latestBal);
+        }
+        if (document.getElementById("kpi-highest-balance")) {
+            document.getElementById("kpi-highest-balance").innerText = formatCurrencyJS(highestBal);
+        }
+        if (document.getElementById("kpi-lowest-balance")) {
+            document.getElementById("kpi-lowest-balance").innerText = formatCurrencyJS(lowestBal);
+            
+            const lowestBadge = document.getElementById("lowest-balance-badge");
+            if (lowestBadge) {
+                if (lowestBal < 0) {
+                    lowestBadge.className = "text-[10px] font-extrabold bg-rose-600 text-white px-2 py-0.5 rounded-full animate-pulse";
+                    lowestBadge.innerText = "Overdraft Deficit";
+                } else if (lowestBal < 1000) {
+                    lowestBadge.className = "text-[10px] font-extrabold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full";
+                    lowestBadge.innerText = "Low Reserve Dip";
+                } else {
+                    lowestBadge.className = "text-[10px] font-extrabold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full";
+                    lowestBadge.innerText = "Safe Reserve";
+                }
+            }
+        }
+    }
 
     if (document.getElementById("kpi-total-credits")) document.getElementById("kpi-total-credits").innerText = formatCurrencyJS(totalCredits);
     if (document.getElementById("kpi-total-debits")) document.getElementById("kpi-total-debits").innerText = formatCurrencyJS(totalDebits);
