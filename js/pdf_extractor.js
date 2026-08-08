@@ -181,29 +181,49 @@ async function routeAndExtractTransactions(pdfData, filename, selectedBank = "au
     };
 }
 
-// Metadata Extraction (Multi-Strategy Robust Parsing)
+// Metadata Extraction (Hyper-Robust Multi-Strategy Parser for Real-Time Users)
 function extractMetadata(text, bankName) {
     const meta = {
-        customer_name: "Not Available",
+        customer_name: "Valued Customer",
         account_number: "Not Available",
         start_date: "Not Available",
         end_date: "Not Available",
         bank_name: bankName
     };
 
+    const cleanText = text.replace(/\r/g, '');
+
     // -------------------------------------------------------------
-    // 1. ACCOUNT NUMBER EXTRACTION (Multi-Strategy)
+    // 1. ACCOUNT NUMBER EXTRACTION
     // -------------------------------------------------------------
-    let accMatch = text.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:|Account\s*:)\s*[:\.]?\s*([0-9X\*\-]{8,24})/i);
+    let accMatch = cleanText.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:|Account\s*:|A\/C\s*:)\s*[:\.]?\s*([0-9X\*\-]{8,24})/i);
     if (!accMatch) {
-        accMatch = text.match(/(?:Statement of|Account Statement for|Savings A\/c|Current A\/c|Account Details)[^\n]*?([0-9]{9,20})/i);
+        accMatch = cleanText.match(/(?:Statement of|Account Statement for|Savings A\/c|Current A\/c|Account Details|Primary A\/C)[^\n]*?([0-9]{8,20})/i);
     }
     if (!accMatch) {
-        accMatch = text.match(/\b([0-9]{11,18})\b/);
+        // Look for digit sequences on lines containing IFSC, Branch, CIF, MICR, or Customer
+        const lines = cleanText.split('\n');
+        for (const line of lines) {
+            if (/IFSC|Branch|CIF|MICR|Customer|Savings|Current|Statement|Account/i.test(line)) {
+                const numMatch = line.match(/\b([0-9]{9,20})\b/);
+                if (numMatch) {
+                    accMatch = numMatch;
+                    break;
+                }
+            }
+        }
     }
+    if (!accMatch) {
+        accMatch = cleanText.match(/\b([0-9]{10,18})\b/);
+    }
+
     if (accMatch) {
-        const candidateAcc = accMatch[1].replace(/[\s\-]/g, '');
-        if (candidateAcc.length >= 8 && !/^\d{4}$/.test(candidateAcc)) {
+        let candidateAcc = accMatch[1] ? accMatch[1].replace(/[\s\-]/g, '') : accMatch[0].replace(/[\s\-]/g, '');
+        // Clean leading zeroes if string length > 12
+        if (candidateAcc.length > 12 && candidateAcc.startsWith("00")) {
+            candidateAcc = candidateAcc.replace(/^0+/, '');
+        }
+        if (candidateAcc.length >= 7 && !/^\d{4}$/.test(candidateAcc)) {
             meta.account_number = candidateAcc;
         }
     }
@@ -211,15 +231,15 @@ function extractMetadata(text, bankName) {
     // -------------------------------------------------------------
     // 2. STATEMENT PERIOD EXTRACTION
     // -------------------------------------------------------------
-    let periodMatch = text.match(/(?:Account\s*)?Statement\s*(?:from|for the period)\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})\s*(?:to|till|-)\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})/i);
+    let periodMatch = cleanText.match(/(?:Account\s*)?Statement\s*(?:from|for the period)\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})\s*(?:to|till|-)\s*(\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}|\d{1,2}[-\/\.]\d{1,2}[-\/\.]\d{2,4})/i);
     if (!periodMatch) {
-        periodMatch = text.match(/Period\s*:\s*(\d{2}-\d{2}-\d{4})\s+(\d{2}-\d{2}-\d{4})/i);
+        periodMatch = cleanText.match(/Period\s*:\s*(\d{2}-\d{2}-\d{4})\s+(\d{2}-\d{2}-\d{4})/i);
     }
     if (!periodMatch) {
-        periodMatch = text.match(/Statement Period\s*:?\s*(\d{4}-\d{2}-\d{2})\s*to\s*(\d{4}-\d{2}-\d{2})/i);
+        periodMatch = cleanText.match(/Statement Period\s*:?\s*(\d{4}-\d{2}-\d{2})\s*to\s*(\d{4}-\d{2}-\d{2})/i);
     }
     if (!periodMatch) {
-        periodMatch = text.match(/From\s*:\s*(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})\s*To\s*:\s*(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})/i);
+        periodMatch = cleanText.match(/From\s*:\s*(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})\s*To\s*:\s*(\d{1,2}[-\/.]\d{1,2}[-\/.]\d{2,4})/i);
     }
     if (periodMatch) {
         meta.start_date = standardizeDate(periodMatch[1]);
@@ -227,21 +247,22 @@ function extractMetadata(text, bankName) {
     }
 
     // -------------------------------------------------------------
-    // 3. CUSTOMER NAME EXTRACTION (Multi-Strategy)
+    // 3. CUSTOMER NAME EXTRACTION
     // -------------------------------------------------------------
-    let nameMatch = text.match(/(?:Account\s*Holder\s*Name|Customer\s*Name|Account\s*Name|A\/c\s*Name|Name\s*of\s*Account\s*Holder|Name\s*of\s*Customer|Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\r?\n|Account|Branch|Statement|Phone|Address|CIF|$)/i);
+    let nameMatch = cleanText.match(/(?:Account\s*Holder\s*Name|Customer\s*Name|Account\s*Name|A\/c\s*Name|Name\s*of\s*Account\s*Holder|Name\s*of\s*Customer|Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|Account|Branch|Statement|Phone|Address|CIF|IFSC|$)/i);
     if (!nameMatch) {
-        nameMatch = text.match(/Statement of (?:Transactions in )?(?:the Account of )?([A-Z\s\.\,\&\-]{4,40})(?: for the period| from| Account|$)/i);
+        nameMatch = cleanText.match(/Statement of (?:Transactions in )?(?:the Account of )?([A-Z\s\.\,\&\-]{4,40})(?: for the period| from| Account|$)/i);
     }
     if (!nameMatch) {
-        nameMatch = text.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
+        nameMatch = cleanText.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
     }
     if (!nameMatch) {
-        const lines = text.split(/\r?\n/).slice(0, 15);
+        // Inspect top 20 lines of text for a capitalized name candidate
+        const lines = cleanText.split('\n').slice(0, 20);
         for (const line of lines) {
             const trimmed = line.trim();
             if (/^[A-Z\s\.\,]{4,35}$/.test(trimmed) && 
-                !/STATEMENT|BANK|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|INDIAN|INR|TRANSACTION|PAGE|HOME|SAVINGS|CURRENT/i.test(trimmed)) {
+                !/STATEMENT|BANK|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|INDIAN|INR|TRANSACTION|PAGE|HOME|SAVINGS|CURRENT|LIMITED|DETAILS|REGISTERED/i.test(trimmed)) {
                 nameMatch = [trimmed, trimmed];
                 break;
             }
@@ -251,7 +272,9 @@ function extractMetadata(text, bankName) {
     if (nameMatch) {
         let cand = nameMatch[1] ? nameMatch[1].trim() : nameMatch[0].trim();
         cand = cand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '');
-        if (cand && cand.length >= 3 && !/transaction|statement|account|balance|opening|closing|summary|page/i.test(cand)) {
+        // Clean out address numbers or trailing punctuation
+        cand = cand.replace(/[:\.\,]+$/, '').trim();
+        if (cand && cand.length >= 3 && !/transaction|statement|account|balance|opening|closing|summary|page|details/i.test(cand)) {
             meta.customer_name = cand;
         }
     }
