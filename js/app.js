@@ -22,6 +22,20 @@ let ledgerChartInstance = null;
 let abbChartInstance = null;
 let comparisonChartInstance = null;
 
+function toggleSidebar() {
+    const sidebar = document.querySelector(".sidebar-container");
+    const icon = document.getElementById("toggle-sidebar-icon");
+    if (!sidebar) return;
+
+    sidebar.classList.toggle("collapsed");
+    
+    if (sidebar.classList.contains("collapsed")) {
+        if (icon) icon.className = "fa-solid fa-chevron-right text-xs";
+    } else {
+        if (icon) icon.className = "fa-solid fa-chevron-left text-xs";
+    }
+}
+
 // ==========================================
 // INITIALIZER
 // ==========================================

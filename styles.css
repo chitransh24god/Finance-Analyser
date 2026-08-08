@@ -76,7 +76,7 @@ body {
     overflow: hidden;
 }
 
-/* Sidebar Custom Styling */
+/* Frosted Glass Sidebar with Collapsible Transitions */
 .sidebar-container {
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(30px);
@@ -86,6 +86,29 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease;
+    overflow: hidden;
+}
+
+.sidebar-container.collapsed {
+    width: 80px;
+    padding: 24px 12px;
+}
+
+.sidebar-container.collapsed .sidebar-text-hide,
+.sidebar-container.collapsed .search-pill-container,
+.sidebar-container.collapsed #sidebar-volume-widget,
+.sidebar-container.collapsed .sidebar-tab-btn i.fa-chevron-right {
+    display: none !important;
+}
+
+.sidebar-container.collapsed .sidebar-tab-btn {
+    justify-content: center;
+    padding: 12px;
+}
+
+.sidebar-container.collapsed .sidebar-tab-btn div {
+    gap: 0;
 }
 
 .sidebar-tab-btn {
