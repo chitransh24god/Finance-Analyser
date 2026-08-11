@@ -504,11 +504,21 @@ function finalizeConsolidatedStatements() {
         evaluatedAccounts
     };
 
+let landingTargetMode = "abb";
+
+function triggerLandingUpload(targetMode) {
+    landingTargetMode = targetMode;
+    const fileInput = document.getElementById("statement-upload");
+    if (fileInput) {
+        fileInput.click();
+    }
+}
+
     populateAccountViewSelector(state.parsedStatementsList);
     renderAnalyzerDashboard(state.parsedData);
     renderAccountComparisonTab();
 
-    if (state.parsedStatementsList && state.parsedStatementsList.length > 1) {
+    if (landingTargetMode === 'comparison' || (state.parsedStatementsList && state.parsedStatementsList.length > 1)) {
         switchSubtab('comparison');
     } else {
         switchSubtab('dashboard');
