@@ -852,12 +852,15 @@ function renderAnalyzerDashboard(data) {
         if (tx.Debit > 0) drCount++;
     });
 
-    // Extract Latest Balance, Highest Balance, and Lowest Balance
+    // Extract Latest Balance, Highest Balance, and Lowest Balance with zero-defensive filtering
     if (data.transactions && data.transactions.length > 0) {
-        const balances = data.transactions.map(tx => tx.Balance);
-        const latestBal = data.transactions[data.transactions.length - 1].Balance;
-        const highestBal = Math.max(...balances);
-        const lowestBal = Math.min(...balances);
+        const validBalances = data.transactions
+            .map(tx => tx.Balance)
+            .filter(b => typeof b === 'number' && !isNaN(b));
+            
+        const latestBal = validBalances.length > 0 ? validBalances[validBalances.length - 1] : 0.0;
+        const highestBal = validBalances.length > 0 ? Math.max(...validBalances) : 0.0;
+        const lowestBal = validBalances.length > 0 ? Math.min(...validBalances) : 0.0;
 
         if (document.getElementById("kpi-latest-balance")) {
             document.getElementById("kpi-latest-balance").innerText = formatCurrencyJS(latestBal);
