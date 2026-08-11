@@ -246,37 +246,59 @@ function extractMetadata(text, bankName) {
     const cleanText = text.replace(/\r/g, '');
 
     // -------------------------------------------------------------
-    // 1. ACCOUNT NUMBER EXTRACTION
+    // HDFC SPECIFIC METADATA OVERRIDES
     // -------------------------------------------------------------
-    let accMatch = cleanText.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:|Account\s*:|A\/C\s*:)\s*[:\.]?\s*([0-9X\*\-]{8,24})/i);
-    if (!accMatch) {
-        accMatch = cleanText.match(/(?:Statement of|Account Statement for|Savings A\/c|Current A\/c|Account Details|Primary A\/C)[^\n]*?([0-9]{8,20})/i);
-    }
-    if (!accMatch) {
-        // Look for digit sequences on lines containing IFSC, Branch, CIF, MICR, or Customer
-        const lines = cleanText.split('\n');
-        for (const line of lines) {
-            if (/IFSC|Branch|CIF|MICR|Customer|Savings|Current|Statement|Account/i.test(line)) {
-                const numMatch = line.match(/\b([0-9]{9,20})\b/);
-                if (numMatch) {
-                    accMatch = numMatch;
-                    break;
-                }
+    if (bankName.toLowerCase().includes("hdfc")) {
+        const hdfcAcc = cleanText.match(/(?:Account\s*No|A\/C\s*No|Account\s*Number|A\/c\s*:)\s*[:\.]?\s*([0-9]{14})/i) ||
+                         cleanText.match(/\b(501\d{11}|502\d{11}|\d{14})\b/);
+        if (hdfcAcc) {
+            meta.account_number = hdfcAcc[1] ? hdfcAcc[1].trim() : hdfcAcc[0].trim();
+        }
+
+        const hdfcNameMatch = cleanText.match(/(?:Customer\s*Name|Account\s*Name|Name\s*:\s*|Name\s+Of\s+Account\s+Holder)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|Cust\s*ID|Account\s*No|Branch|Address|Statement|JOINT|$)/i) ||
+                             cleanText.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i) ||
+                             cleanText.match(/(?:^|\n)\s*(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)?\.?\s*([A-Z\s]{4,35})\s*(?=\n(?:FLAT|PLOT|HOUSE|DOOR|ROAD|STREET|NAGAR|NEAR|OPP|DIST|CITY|STATE|PIN|TEL|CUST|ACCOUNT|BRANCH))/i);
+        if (hdfcNameMatch) {
+            let nameCand = hdfcNameMatch[1] ? hdfcNameMatch[1].trim() : hdfcNameMatch[0].trim();
+            nameCand = nameCand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '').replace(/[:\.\,]+$/, '').trim();
+            if (nameCand && nameCand.length >= 3 && !/HDFC|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|SUMMARY/i.test(nameCand)) {
+                meta.customer_name = nameCand;
             }
         }
     }
-    if (!accMatch) {
-        accMatch = cleanText.match(/\b([0-9]{10,18})\b/);
-    }
 
-    if (accMatch) {
-        let candidateAcc = accMatch[1] ? accMatch[1].replace(/[\s\-]/g, '') : accMatch[0].replace(/[\s\-]/g, '');
-        // Clean leading zeroes if string length > 12
-        if (candidateAcc.length > 12 && candidateAcc.startsWith("00")) {
-            candidateAcc = candidateAcc.replace(/^0+/, '');
+    // -------------------------------------------------------------
+    // 1. ACCOUNT NUMBER EXTRACTION (GENERAL FALLBACK)
+    // -------------------------------------------------------------
+    if (meta.account_number === "Not Available") {
+        let accMatch = cleanText.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:|Account\s*:|A\/C\s*:)\s*[:\.]?\s*([0-9X\*\-]{8,24})/i);
+        if (!accMatch) {
+            accMatch = cleanText.match(/(?:Statement of|Account Statement for|Savings A\/c|Current A\/c|Account Details|Primary A\/C)[^\n]*?([0-9]{8,20})/i);
         }
-        if (candidateAcc.length >= 7 && !/^\d{4}$/.test(candidateAcc)) {
-            meta.account_number = candidateAcc;
+        if (!accMatch) {
+            const lines = cleanText.split('\n');
+            for (const line of lines) {
+                if (/IFSC|Branch|CIF|MICR|Customer|Savings|Current|Statement|Account/i.test(line)) {
+                    const numMatch = line.match(/\b([0-9]{9,20})\b/);
+                    if (numMatch) {
+                        accMatch = numMatch;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!accMatch) {
+            accMatch = cleanText.match(/\b([0-9]{10,18})\b/);
+        }
+
+        if (accMatch) {
+            let candidateAcc = accMatch[1] ? accMatch[1].replace(/[\s\-]/g, '') : accMatch[0].replace(/[\s\-]/g, '');
+            if (candidateAcc.length > 12 && candidateAcc.startsWith("00")) {
+                candidateAcc = candidateAcc.replace(/^0+/, '');
+            }
+            if (candidateAcc.length >= 7 && !/^\d{4}$/.test(candidateAcc)) {
+                meta.account_number = candidateAcc;
+            }
         }
     }
 
@@ -299,35 +321,35 @@ function extractMetadata(text, bankName) {
     }
 
     // -------------------------------------------------------------
-    // 3. CUSTOMER NAME EXTRACTION
+    // 3. CUSTOMER NAME EXTRACTION (GENERAL FALLBACK)
     // -------------------------------------------------------------
-    let nameMatch = cleanText.match(/(?:Account\s*Holder\s*Name|Customer\s*Name|Account\s*Name|A\/c\s*Name|Name\s*of\s*Account\s*Holder|Name\s*of\s*Customer|Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|Account|Branch|Statement|Phone|Address|CIF|IFSC|$)/i);
-    if (!nameMatch) {
-        nameMatch = cleanText.match(/Statement of (?:Transactions in )?(?:the Account of )?([A-Z\s\.\,\&\-]{4,40})(?: for the period| from| Account|$)/i);
-    }
-    if (!nameMatch) {
-        nameMatch = cleanText.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
-    }
-    if (!nameMatch) {
-        // Inspect top 20 lines of text for a capitalized name candidate
-        const lines = cleanText.split('\n').slice(0, 20);
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (/^[A-Z\s\.\,]{4,35}$/.test(trimmed) && 
-                !/STATEMENT|BANK|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|INDIAN|INR|TRANSACTION|PAGE|HOME|SAVINGS|CURRENT|LIMITED|DETAILS|REGISTERED/i.test(trimmed)) {
-                nameMatch = [trimmed, trimmed];
-                break;
+    if (meta.customer_name === "Valued Customer") {
+        let nameMatch = cleanText.match(/(?:Account\s*Holder\s*Name|Customer\s*Name|Account\s*Name|A\/c\s*Name|Name\s*of\s*Account\s*Holder|Name\s*of\s*Customer|Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|Account|Branch|Statement|Phone|Address|CIF|IFSC|Cust\s*ID|$)/i);
+        if (!nameMatch) {
+            nameMatch = cleanText.match(/Statement of (?:Transactions in )?(?:the Account of )?([A-Z\s\.\,\&\-]{4,40})(?: for the period| from| Account|$)/i);
+        }
+        if (!nameMatch) {
+            nameMatch = cleanText.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
+        }
+        if (!nameMatch) {
+            const lines = cleanText.split('\n').slice(0, 25);
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (/^[A-Z\s\.\,]{4,35}$/.test(trimmed) && 
+                    !/STATEMENT|BANK|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|INDIAN|INR|TRANSACTION|PAGE|HOME|SAVINGS|CURRENT|LIMITED|DETAILS|REGISTERED|HDFC|ICICI|STATE|AXIS|CANARA|IDFC|KOTAK|PUNJAB|BARODA|UNION|INDUSIND|CENTRAL|YES|KALUPUR/i.test(trimmed)) {
+                    nameMatch = [trimmed, trimmed];
+                    break;
+                }
             }
         }
-    }
 
-    if (nameMatch) {
-        let cand = nameMatch[1] ? nameMatch[1].trim() : nameMatch[0].trim();
-        cand = cand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '');
-        // Clean out address numbers or trailing punctuation
-        cand = cand.replace(/[:\.\,]+$/, '').trim();
-        if (cand && cand.length >= 3 && !/transaction|statement|account|balance|opening|closing|summary|page|details/i.test(cand)) {
-            meta.customer_name = cand;
+        if (nameMatch) {
+            let cand = nameMatch[1] ? nameMatch[1].trim() : nameMatch[0].trim();
+            cand = cand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '');
+            cand = cand.replace(/[:\.\,]+$/, '').trim();
+            if (cand && cand.length >= 3 && !/transaction|statement|account|balance|opening|closing|summary|page|details|hdfc|icici|state\s*bank/i.test(cand)) {
+                meta.customer_name = cand;
+            }
         }
     }
 
