@@ -265,9 +265,24 @@ async function processUploadedStatementsQueue(fileIndex = 0, currentPassword = "
                 console.warn(`0 transactions extracted from ${file.name}`);
             }
         } catch (err) {
-            const errMsg = (err.message || "").toLowerCase();
+            const errMsg = err.message || "";
             const errName = err.name || "";
-            if (errName === "PasswordException" || errMsg.includes("password") || errMsg.includes("decrypt") || errMsg.includes("encrypted")) {
+            
+            if (errName === "BankMismatchException") {
+                loader.classList.add("hidden");
+                if (landing) landing.classList.remove("hidden");
+                
+                alert(`❌ BANK SELECTION MISMATCH ERROR\n\n${errMsg}`);
+                document.getElementById("statement-upload").value = "";
+                
+                const bankSelector = document.getElementById("bank-selector");
+                if (bankSelector) {
+                    bankSelector.focus();
+                    bankSelector.classList.add("ring-4", "ring-rose-500", "animate-bounce");
+                    setTimeout(() => bankSelector.classList.remove("ring-4", "ring-rose-500", "animate-bounce"), 3000);
+                }
+                return;
+            } else if (errName === "PasswordException" || errMsg.toLowerCase().includes("password") || errMsg.toLowerCase().includes("decrypt") || errMsg.toLowerCase().includes("encrypted")) {
                 loader.classList.add("hidden");
                 state.currentEncryptedFileIndex = i;
                 showPasswordModalForFile(file.name, currentPassword ? "Incorrect password. Please enter valid password." : "");

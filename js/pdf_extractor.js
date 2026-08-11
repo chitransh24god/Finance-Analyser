@@ -96,6 +96,61 @@ async function extractTextAndLayoutFromPdf(pdfBytes, password = "") {
 }
 
 /**
+ * Detects the inherent bank signature inside PDF text layout or filename.
+ */
+function detectPdfInherentBank(fullText, filename) {
+    const textLower = (fullText || "").toLowerCase();
+    const fnLower = (filename || "").toLowerCase();
+
+    if (fnLower.includes("hdfc") || textLower.includes("hdfc bank") || textLower.includes("hdfcbank") || textLower.includes("hdfc0")) {
+        return { id: "hdfc", name: "HDFC Bank" };
+    }
+    if (fnLower.includes("icici") || textLower.includes("icici bank") || textLower.includes("icic0")) {
+        return { id: "icici", name: "ICICI Bank" };
+    }
+    if (fnLower.includes("sbi") || textLower.includes("state bank of india") || textLower.includes("sbin0") || textLower.includes("sbi bank")) {
+        return { id: "sbi", name: "State Bank of India (SBI)" };
+    }
+    if (fnLower.includes("axis") || textLower.includes("axis bank") || textLower.includes("utib0")) {
+        return { id: "axis", name: "Axis Bank" };
+    }
+    if (fnLower.includes("idfc") || textLower.includes("idfc first bank") || textLower.includes("idfb0")) {
+        return { id: "idfc", name: "IDFC First Bank" };
+    }
+    if (fnLower.includes("canara") || textLower.includes("canara bank") || textLower.includes("cnrb0")) {
+        return { id: "canara", name: "Canara Bank" };
+    }
+    if (fnLower.includes("kotak") || textLower.includes("kotak mahindra") || textLower.includes("kkbk0")) {
+        return { id: "kotak", name: "Kotak Mahindra Bank" };
+    }
+    if (fnLower.includes("pnb") || textLower.includes("punjab national bank") || textLower.includes("punb0")) {
+        return { id: "pnb", name: "Punjab National Bank (PNB)" };
+    }
+    if (fnLower.includes("bob") || textLower.includes("bank of baroda") || textLower.includes("barb0")) {
+        return { id: "bob", name: "Bank of Baroda" };
+    }
+    if (fnLower.includes("union") || textLower.includes("union bank of india") || textLower.includes("ubin0")) {
+        return { id: "union", name: "Union Bank of India" };
+    }
+    if (fnLower.includes("indusind") || textLower.includes("indusind bank") || textLower.includes("indb0")) {
+        return { id: "indusind", name: "IndusInd Bank" };
+    }
+    if (fnLower.includes("cbi") || textLower.includes("central bank of india") || textLower.includes("cbin0")) {
+        return { id: "cbi", name: "Central Bank of India" };
+    }
+    if (fnLower.includes("boi") || textLower.includes("bank of india") || textLower.includes("bkid0")) {
+        return { id: "boi", name: "Bank of India" };
+    }
+    if (fnLower.includes("yes") || textLower.includes("yes bank") || textLower.includes("yesb0")) {
+        return { id: "yes", name: "Yes Bank" };
+    }
+    if (fnLower.includes("kalupur") || textLower.includes("kalupur")) {
+        return { id: "kalupur", name: "Kalupur Cooperative Bank" };
+    }
+    return null;
+}
+
+/**
  * Detects bank type and routes to the matching parser.
  */
 async function routeAndExtractTransactions(pdfData, filename, selectedBank = "auto") {
@@ -121,37 +176,34 @@ async function routeAndExtractTransactions(pdfData, filename, selectedBank = "au
         else if (selectedBank === "indusind") { bankName = "IndusInd Bank"; parser = parseIndusind; }
         else if (selectedBank === "cbi") { bankName = "Central Bank of India"; parser = parseCbi; }
         else if (selectedBank === "boi") { bankName = "Bank of India"; parser = parseBoi; }
+
+        // Perform Bank Mismatch Check against inherent PDF contents
+        const detected = detectPdfInherentBank(pdfData.fullText, filename);
+        if (detected && detected.id !== selectedBank) {
+            const err = new Error(`Bank Selection Mismatch!\n\nYou selected "${bankName}" from the top dropdown, but the uploaded file "${filename}" is a ${detected.name} statement.\n\nPlease select "${detected.name}" from the bank dropdown or upload an official ${bankName} statement.`);
+            err.name = "BankMismatchException";
+            err.selectedBankName = bankName;
+            err.detectedBankName = detected.name;
+            throw err;
+        }
     } else {
-        if (filenameLower.includes("hdfc") || textLower.includes("hdfc bank") || textLower.includes("hdfcbank")) {
-            bankName = "HDFC Bank"; parser = parseHdfc;
-        } else if (filenameLower.includes("icici") || filenameLower.includes("ic bank") || textLower.includes("icici bank") || textLower.includes("icic")) {
-            bankName = "ICICI Bank"; parser = parseIcici;
-        } else if (filenameLower.includes("sbi") || filenameLower.includes("state bank") || textLower.includes("state bank of india") || textLower.includes("sbin0")) {
-            bankName = "State Bank of India (SBI)"; parser = parseSbi;
-        } else if (filenameLower.includes("axis") || filenameLower.includes("axix") || textLower.includes("axis bank") || textLower.includes("axis account")) {
-            bankName = "Axis Bank"; parser = parseAxis;
-        } else if (filenameLower.includes("idfc") || textLower.includes("idfc")) {
-            bankName = "IDFC First Bank"; parser = parseIdfc;
-        } else if (filenameLower.includes("yes bank") || filenameLower.includes("yes_bank") || textLower.includes("yes bank") || textLower.includes("yesbank")) {
-            bankName = "Yes Bank"; parser = parseYes;
-        } else if (filenameLower.includes("canara") || textLower.includes("canara bank") || textLower.includes("canara")) {
-            bankName = "Canara Bank"; parser = parseCanara;
-        } else if (filenameLower.includes("kalupur") || textLower.includes("kalupur")) {
-            bankName = "Kalupur Cooperative Bank"; parser = parseKalupur;
-        } else if (filenameLower.includes("kotak") || textLower.includes("kotak")) {
-            bankName = "Kotak Mahindra Bank"; parser = parseKotak;
-        } else if (filenameLower.includes("pnb") || textLower.includes("punjab national")) {
-            bankName = "Punjab National Bank"; parser = parsePnb;
-        } else if (filenameLower.includes("bob") || textLower.includes("bank of baroda") || textLower.includes("baroda")) {
-            bankName = "Bank of Baroda"; parser = parseBob;
-        } else if (filenameLower.includes("union") || textLower.includes("union bank")) {
-            bankName = "Union Bank of India"; parser = parseUnion;
-        } else if (filenameLower.includes("indusind") || textLower.includes("indusind")) {
-            bankName = "IndusInd Bank"; parser = parseIndusind;
-        } else if (filenameLower.includes("cbi") || textLower.includes("central bank")) {
-            bankName = "Central Bank of India"; parser = parseCbi;
-        } else if (filenameLower.includes("boi") || textLower.includes("bank of india")) {
-            bankName = "Bank of India"; parser = parseBoi;
+        const detected = detectPdfInherentBank(pdfData.fullText, filename);
+        if (detected) {
+            if (detected.id === "hdfc") { bankName = "HDFC Bank"; parser = parseHdfc; }
+            else if (detected.id === "icici") { bankName = "ICICI Bank"; parser = parseIcici; }
+            else if (detected.id === "sbi") { bankName = "State Bank of India (SBI)"; parser = parseSbi; }
+            else if (detected.id === "axis") { bankName = "Axis Bank"; parser = parseAxis; }
+            else if (detected.id === "idfc") { bankName = "IDFC First Bank"; parser = parseIdfc; }
+            else if (detected.id === "canara") { bankName = "Canara Bank"; parser = parseCanara; }
+            else if (detected.id === "kotak") { bankName = "Kotak Mahindra Bank"; parser = parseKotak; }
+            else if (detected.id === "pnb") { bankName = "Punjab National Bank"; parser = parsePnb; }
+            else if (detected.id === "bob") { bankName = "Bank of Baroda"; parser = parseBob; }
+            else if (detected.id === "union") { bankName = "Union Bank of India"; parser = parseUnion; }
+            else if (detected.id === "indusind") { bankName = "IndusInd Bank"; parser = parseIndusind; }
+            else if (detected.id === "cbi") { bankName = "Central Bank of India"; parser = parseCbi; }
+            else if (detected.id === "boi") { bankName = "Bank of India"; parser = parseBoi; }
+            else if (detected.id === "yes") { bankName = "Yes Bank"; parser = parseYes; }
+            else if (detected.id === "kalupur") { bankName = "Kalupur Cooperative Bank"; parser = parseKalupur; }
         }
     }
 
