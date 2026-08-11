@@ -198,6 +198,20 @@ function initUploadListener() {
 function handleSelectedFiles(files) {
     if (!files || files.length === 0) return;
 
+    const bankSelector = document.getElementById("bank-selector");
+    if (!bankSelector || !bankSelector.value) {
+        alert("⚠️ Please select your Bank from the top dropdown before uploading your statement PDF(s).");
+        if (bankSelector) {
+            bankSelector.focus();
+            bankSelector.classList.add("ring-4", "ring-indigo-500", "animate-pulse");
+            setTimeout(() => {
+                bankSelector.classList.remove("ring-4", "ring-indigo-500", "animate-pulse");
+            }, 3000);
+        }
+        document.getElementById("statement-upload").value = "";
+        return;
+    }
+
     state.pendingFilesQueue = files;
     state.parsedStatementsList = [];
     state.currentEncryptedFileIndex = 0;
