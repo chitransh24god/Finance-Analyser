@@ -809,6 +809,10 @@ function renderAnalyzerDashboard(data) {
     const abb3mStr = formatCurrencyJS(data.abb_summary.abb_3m);
     const abb6mStr = formatCurrencyJS(data.abb_summary.abb_6m);
 
+    if (document.getElementById("hero-abb-1m")) document.getElementById("hero-abb-1m").innerText = abb1mStr;
+    if (document.getElementById("hero-abb-3m")) document.getElementById("hero-abb-3m").innerText = abb3mStr;
+    if (document.getElementById("hero-abb-6m")) document.getElementById("hero-abb-6m").innerText = abb6mStr;
+
     if (document.getElementById("summary-abb-1m")) document.getElementById("summary-abb-1m").innerText = abb1mStr;
     if (document.getElementById("abb-3m")) document.getElementById("abb-3m").innerText = abb3mStr;
     if (document.getElementById("abb-6m")) document.getElementById("abb-6m").innerText = abb6mStr;
