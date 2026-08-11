@@ -457,76 +457,38 @@
                             </div>
                         </div>
                         
-                        <!-- Interactive Dashboard Bank Filter Switcher Bar -->
-                        <div id="dashboard-bank-filter-bar" class="bento-card p-4 flex flex-wrap items-center justify-between gap-3 bg-white border border-purple-100">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xs font-bold">
-                                    <i class="fa-solid fa-building-columns"></i>
-                                </div>
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <span class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Select Bank View:</span>
-                                    <div id="dashboard-bank-pills" class="flex flex-wrap items-center gap-2">
-                                        <button class="subtab-pill active" onclick="switchDashboardBankFilter('consolidated', this)">
-                                            🌐 All Banks (Consolidated)
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <span id="active-bank-badge" class="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-100">
-                                Showing Consolidated Full Report
-                            </span>
-                        </div>
-
-                        <!-- BENTO ROW 1: Quick Action Cards (Matching Reference: Add Money, Send Money, Upcoming Bills) -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <!-- Bento Card 1: Add Money Style -> Upload Statement -->
-                            <div class="bento-card flex items-center justify-between cursor-pointer hover:border-purple-400 group" onclick="document.getElementById('statement-upload').click()">
+                        <!-- BENTO ROW 1: Quick Action Cards (Clean 2-Column Grid) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Bento Card 1: ABB Deep Analysis -->
+                            <div class="bento-card bento-card-lilac flex items-center justify-between cursor-pointer hover:border-purple-400 group" onclick="switchSubtab('abb')">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-full border-2 border-purple-300 text-purple-600 flex items-center justify-center text-xl font-bold bg-purple-50 group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-plus"></i>
+                                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center text-xl shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform">
+                                        <i class="fa-solid fa-chart-column"></i>
                                     </div>
                                     <div>
-                                        <div class="flex items-center gap-2">
-                                            <h4 class="font-extrabold text-slate-900 text-base">Add Statement(s)</h4>
-                                            <span class="text-[10px] font-extrabold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200">Multi-PDF</span>
-                                        </div>
-                                        <p class="text-xs text-purple-600 font-semibold mt-0.5">💡 Hold <kbd class="px-1.5 py-0.5 bg-slate-100 border rounded text-[10px] font-mono font-bold text-slate-700">CTRL</kbd> / <kbd class="px-1.5 py-0.5 bg-slate-100 border rounded text-[10px] font-mono font-bold text-slate-700">⌘</kbd> to select 2+ PDFs</p>
-                                    </div>
-                                </div>
-                                <i class="fa-solid fa-chevron-right text-xs text-slate-300"></i>
-                            </div>
-
-                            <!-- Bento Card 2: Send Money Style -> Lilac Feature Card -->
-                            <div class="bento-card bento-card-lilac flex items-center justify-between cursor-pointer" onclick="switchSubtab('abb')">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-xl shadow-md shadow-purple-500/20">
-                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-extrabold text-slate-900 text-base">Analyze ABB</h4>
-                                        <p class="text-xs text-purple-700 mt-0.5">Evaluate daily ledger health</p>
-                                    </div>
-                                </div>
-                                <i class="fa-solid fa-chevron-right text-xs text-purple-400"></i>
-                            </div>
-
-                            <!-- Bento Card 3: Upcoming Bills Style -> Financial Alerts Card -->
-                            <div class="bento-card flex items-center justify-between cursor-pointer" onclick="switchSubtab('credit')">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-base font-black shadow-sm">
-                                        <span id="alerts-count-badge">0</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-extrabold text-slate-900 text-base">Risk Alerts</h4>
-                                        <p class="text-xs text-slate-400 mt-0.5">Bounces & Overdraft events</p>
+                                        <h4 class="font-extrabold text-slate-900 text-base">ABB Deep Analysis</h4>
+                                        <p class="text-xs text-purple-700 font-semibold mt-0.5">Inspect daily balances & ledger continuity</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <div class="flex -space-x-2">
-                                        <div class="w-7 h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-bold border-2 border-white">SB</div>
-                                        <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold border-2 border-white">HD</div>
-                                        <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] font-bold border-2 border-white">IC</div>
+                                    <span class="text-[10px] font-extrabold bg-white text-purple-700 px-2.5 py-1 rounded-full shadow-sm">View Ledgers</span>
+                                    <i class="fa-solid fa-chevron-right text-xs text-purple-400"></i>
+                                </div>
+                            </div>
+
+                            <!-- Bento Card 2: Risk & Underwriting Audit -->
+                            <div class="bento-card flex items-center justify-between cursor-pointer hover:border-indigo-400 group" onclick="switchSubtab('credit')">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-xl font-black shadow-sm group-hover:scale-105 transition-transform">
+                                        <span id="alerts-count-badge">0</span>
                                     </div>
+                                    <div>
+                                        <h4 class="font-extrabold text-slate-900 text-base">Risk & Underwriting Audit</h4>
+                                        <p class="text-xs text-slate-400 font-semibold mt-0.5">Bounces, overdrafts & cash flow risk score</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-extrabold bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full border border-rose-100">Audit Status</span>
                                     <i class="fa-solid fa-arrow-right text-xs text-slate-400"></i>
                                 </div>
                             </div>
