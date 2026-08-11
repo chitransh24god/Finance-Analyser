@@ -856,6 +856,18 @@ function renderAnalyzerDashboard(data) {
         if (tx.Debit > 0) drCount++;
     });
 
+    // Calculate Underwriting KPIs (Max Sanction & Net Surplus)
+    const abb6mVal = (data.abb_summary && data.abb_summary.abb_6m) ? data.abb_summary.abb_6m : 0;
+    const maxSanction = Math.round(abb6mVal * 6.5);
+    const netSurplus = totalCredits - totalDebits;
+
+    if (document.getElementById("kpi-sanction-limit")) {
+        document.getElementById("kpi-sanction-limit").innerText = formatCurrencyJS(maxSanction);
+    }
+    if (document.getElementById("kpi-net-surplus")) {
+        document.getElementById("kpi-net-surplus").innerText = (netSurplus >= 0 ? "+" : "") + formatCurrencyJS(netSurplus);
+    }
+
     // Extract Latest Balance, Highest Balance, and Lowest Balance with zero-defensive filtering
     if (data.transactions && data.transactions.length > 0) {
         const validBalances = data.transactions
