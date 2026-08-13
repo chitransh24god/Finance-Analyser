@@ -291,7 +291,29 @@ function extractMetadata(text, bankName) {
     }
 
     // -------------------------------------------------------------
-    // 1. ACCOUNT NUMBER EXTRACTION (GENERAL FALLBACK)
+    // SBI SPECIFIC METADATA OVERRIDES
+    // -------------------------------------------------------------
+    if (bankName.toLowerCase().includes("sbi") || bankName.toLowerCase().includes("state bank")) {
+        const sbiAcc = cleanText.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:)\s*[:\.]?\s*([0-9]{11,17})/i) ||
+                        cleanText.match(/\b(0{2,6}\d{11}|\d{11})\b/);
+        if (sbiAcc) {
+            meta.account_number = sbiAcc[1] ? sbiAcc[1].trim() : sbiAcc[0].trim();
+        }
+
+        const sbiNameMatch = cleanText.match(/(?:Account\s*Name|Customer\s*Name|Name\s*:\s*|Name\s+Of\s+Account\s+Holder|Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|IFS|CIF|Branch|Account|Statement|JOINT|$)/i) ||
+                            cleanText.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i) ||
+                            cleanText.match(/(?:^|\n)\s*(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)?\.?\s*([A-Z\s]{4,35})\s*(?=\n(?:IFS|CIF|BRANCH|ACCOUNT|SBIN|STATE|BANK))/i);
+        if (sbiNameMatch) {
+            let nameCand = sbiNameMatch[1] ? sbiNameMatch[1].trim() : sbiNameMatch[0].trim();
+            nameCand = nameCand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '').replace(/[:\.\,]+$/, '').trim();
+            if (nameCand && nameCand.length >= 3 && !/STATE|BANK|INDIA|SBI|STATEMENT|ACCOUNT|BRANCH|IFSC|SBIN|DATE|PERIOD|BALANCE|SUMMARY/i.test(nameCand)) {
+                meta.customer_name = nameCand;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------
+    // 1. ACCOUNT NUMBER EXTRACTION (GENERAL FALLBACK - PRESERVES LEADING ZEROS)
     // -------------------------------------------------------------
     if (meta.account_number === "Not Available") {
         let accMatch = cleanText.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:|Account\s*:|A\/C\s*:)\s*[:\.]?\s*([0-9X\*\-]{8,24})/i);
@@ -316,9 +338,6 @@ function extractMetadata(text, bankName) {
 
         if (accMatch) {
             let candidateAcc = accMatch[1] ? accMatch[1].replace(/[\s\-]/g, '') : accMatch[0].replace(/[\s\-]/g, '');
-            if (candidateAcc.length > 12 && candidateAcc.startsWith("00")) {
-                candidateAcc = candidateAcc.replace(/^0+/, '');
-            }
             if (candidateAcc.length >= 7 && !/^\d{4}$/.test(candidateAcc)) {
                 meta.account_number = candidateAcc;
             }
