@@ -268,6 +268,29 @@ function extractMetadata(text, bankName) {
     }
 
     // -------------------------------------------------------------
+    // KOTAK MAHINDRA BANK SPECIFIC METADATA OVERRIDES
+    // -------------------------------------------------------------
+    if (bankName.toLowerCase().includes("kotak")) {
+        const kotakAcc = cleanText.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:)\s*[:\.]?\s*([0-9]{10,16})/i) ||
+                          cleanText.match(/(?:CRN\s*(?:No|Number|#)?[:\s]+[0-9]+\s+)?(?:Account\s*No[:\s]+)?\b([0-9]{10,16})\b/i);
+        if (kotakAcc) {
+            meta.account_number = kotakAcc[1] ? kotakAcc[1].trim() : kotakAcc[0].trim();
+        }
+
+        const kotakNameMatch = cleanText.match(/(?:Customer\s*Name|Name\s*of\s*Customer|Account\s*Name|Name\s*:\s*|Name\s+Of\s+Account\s+Holder)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|CRN|Account|Branch|Address|Statement|JOINT|IFSC|KKBK|$)/i) ||
+                              cleanText.match(/Statement of (?:Account|Transactions)?\s+(?:in the name of|for)?\s*([A-Z\s\.\,\&\-]{4,40})(?:\n|CRN|Account|Branch|Period|$)/i) ||
+                              cleanText.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i) ||
+                              cleanText.match(/(?:^|\n)\s*(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)?\.?\s*([A-Z\s]{4,35})\s*(?=\n(?:CRN|ACCOUNT|BRANCH|FLAT|PLOT|HOUSE|DOOR|ROAD|STREET|NAGAR|NEAR|OPP|KOTAK))/i);
+        if (kotakNameMatch) {
+            let nameCand = kotakNameMatch[1] ? kotakNameMatch[1].trim() : kotakNameMatch[0].trim();
+            nameCand = nameCand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '').replace(/[:\.\,]+$/, '').trim();
+            if (nameCand && nameCand.length >= 3 && !/KOTAK|MAHINDRA|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|SUMMARY|CRN/i.test(nameCand)) {
+                meta.customer_name = nameCand;
+            }
+        }
+    }
+
+    // -------------------------------------------------------------
     // 1. ACCOUNT NUMBER EXTRACTION (GENERAL FALLBACK)
     // -------------------------------------------------------------
     if (meta.account_number === "Not Available") {
