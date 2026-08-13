@@ -319,49 +319,82 @@ function extractMetadata(text, bankName) {
     }
 
     // -------------------------------------------------------------
-    // 3. CUSTOMER NAME EXTRACTION (STRICTLY ACCOUNT HOLDER - NO NOMINEE)
+    // 3. CUSTOMER NAME EXTRACTION (STRICTLY PRIMARY ACCOUNT HOLDER - NO NOMINEE)
     // -------------------------------------------------------------
     const isNomineeLine = (str) => /NOMINEE|NOMINATION|RELATIONSHIP|BENEFICIARY|GUARDIAN|RELATIVE/i.test(str);
     const nonNomineeLines = cleanText.split('\n').filter(line => !isNomineeLine(line));
     const nonNomineeText = nonNomineeLines.join('\n');
 
-    // Strategy 1: Explicit Primary Account Holder Keywords
-    let nameMatch = nonNomineeText.match(/(?:Primary\s*Account\s*Holder|Account\s*Holder\s*Name|Customer\s*Name|Account\s*Name|A\/c\s*Name|Name\s*of\s*Account\s*Holder|Name\s*of\s*Customer|(?:^|\n)\s*Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|Account|Branch|Statement|Phone|Address|CIF|IFSC|Cust\s*ID|Nominee|$)/i);
-    
-    // Strategy 2: Statement of Account in the name of...
-    if (!nameMatch) {
-        nameMatch = nonNomineeText.match(/Statement of (?:Transactions in )?(?:the Account of )?([A-Z\s\.\,\&\-]{4,40})(?: for the period| from| Account| Nominee|$)/i);
-    }
-
-    // Strategy 3: Salutation matched name on non-nominee line
-    if (!nameMatch) {
-        for (const line of nonNomineeLines.slice(0, 30)) {
-            const m = line.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
-            if (m && !isNomineeLine(line)) {
-                nameMatch = m;
-                break;
+    // Bank-Specific Name Extraction Strategies (on non-nominee text)
+    if (bankName.toLowerCase().includes("hdfc")) {
+        const hdfcNameMatch = nonNomineeText.match(/(?:Customer\s*Name|Account\s*Name|Primary\s*Account\s*Holder|Name\s*:\s*|Name\s+Of\s+Account\s+Holder)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|Cust\s*ID|Account\s*No|Branch|Address|Statement|JOINT|Nominee|$)/i) ||
+                             nonNomineeText.match(/(?:^|\n)\s*(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
+        if (hdfcNameMatch) {
+            let nameCand = hdfcNameMatch[1] ? hdfcNameMatch[1].trim() : hdfcNameMatch[0].trim();
+            nameCand = nameCand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '').replace(/[:\.\,]+$/, '').trim();
+            if (nameCand && nameCand.length >= 3 && !/HDFC|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|SUMMARY|NOMINEE/i.test(nameCand)) {
+                meta.customer_name = nameCand;
+            }
+        }
+    } else if (bankName.toLowerCase().includes("kotak")) {
+        const kotakNameMatch = nonNomineeText.match(/(?:Customer\s*Name|Name\s*of\s*Customer|Account\s*Name|Primary\s*Account\s*Holder|Name\s*:\s*|Name\s+Of\s+Account\s+Holder)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|CRN|Account|Branch|Address|Statement|JOINT|IFSC|KKBK|Nominee|$)/i) ||
+                              nonNomineeText.match(/Statement of (?:Account|Transactions)?\s+(?:in the name of|for)?\s*([A-Z\s\.\,\&\-]{4,40})(?:\n|CRN|Account|Branch|Period|Nominee|$)/i) ||
+                              nonNomineeText.match(/(?:^|\n)\s*(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
+        if (kotakNameMatch) {
+            let nameCand = kotakNameMatch[1] ? kotakNameMatch[1].trim() : kotakNameMatch[0].trim();
+            nameCand = nameCand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '').replace(/[:\.\,]+$/, '').trim();
+            if (nameCand && nameCand.length >= 3 && !/KOTAK|MAHINDRA|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|SUMMARY|CRN|NOMINEE/i.test(nameCand)) {
+                meta.customer_name = nameCand;
+            }
+        }
+    } else if (bankName.toLowerCase().includes("sbi") || bankName.toLowerCase().includes("state bank")) {
+        const sbiNameMatch = nonNomineeText.match(/(?:Account\s*Name|Customer\s*Name|Primary\s*Account\s*Holder|Name\s*:\s*|Name\s+Of\s+Account\s+Holder|Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|IFS|CIF|Branch|Account|Statement|JOINT|Nominee|$)/i) ||
+                            nonNomineeText.match(/(?:^|\n)\s*(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
+        if (sbiNameMatch) {
+            let nameCand = sbiNameMatch[1] ? sbiNameMatch[1].trim() : sbiNameMatch[0].trim();
+            nameCand = nameCand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '').replace(/[:\.\,]+$/, '').trim();
+            if (nameCand && nameCand.length >= 3 && !/STATE|BANK|INDIA|SBI|STATEMENT|ACCOUNT|BRANCH|IFSC|SBIN|DATE|PERIOD|BALANCE|SUMMARY|NOMINEE/i.test(nameCand)) {
+                meta.customer_name = nameCand;
             }
         }
     }
 
-    // Strategy 4: Inspect top 25 non-nominee lines for a capitalized customer name
-    if (!nameMatch) {
-        for (const line of nonNomineeLines.slice(0, 25)) {
-            const trimmed = line.trim();
-            if (/^[A-Z\s\.\,]{4,35}$/.test(trimmed) && 
-                !/STATEMENT|BANK|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|INDIAN|INR|TRANSACTION|PAGE|HOME|SAVINGS|CURRENT|LIMITED|DETAILS|REGISTERED|HDFC|ICICI|STATE|AXIS|CANARA|IDFC|KOTAK|PUNJAB|BARODA|UNION|INDUSIND|CENTRAL|YES|KALUPUR|NOMINEE|NOMINATION/i.test(trimmed)) {
-                nameMatch = [trimmed, trimmed];
-                break;
+    // Universal Fallback Strategies (if bank specific didn't populate)
+    if (meta.customer_name === "Valued Customer") {
+        let nameMatch = nonNomineeText.match(/(?:Primary\s*Account\s*Holder|Account\s*Holder\s*Name|Customer\s*Name|Account\s*Name|A\/c\s*Name|Name\s*of\s*Account\s*Holder|Name\s*of\s*Customer|(?:^|\n)\s*Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]+?)(?:\n|Account|Branch|Statement|Phone|Address|CIF|IFSC|Cust\s*ID|Nominee|$)/i);
+        
+        if (!nameMatch) {
+            nameMatch = nonNomineeText.match(/Statement of (?:Transactions in )?(?:the Account of )?([A-Z\s\.\,\&\-]{4,40})(?: for the period| from| Account| Nominee|$)/i);
+        }
+
+        if (!nameMatch) {
+            for (const line of nonNomineeLines.slice(0, 30)) {
+                const m = line.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
+                if (m && !isNomineeLine(line)) {
+                    nameMatch = m;
+                    break;
+                }
             }
         }
-    }
 
-    if (nameMatch) {
-        let cand = nameMatch[1] ? nameMatch[1].trim() : nameMatch[0].trim();
-        cand = cand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '');
-        cand = cand.replace(/[:\.\,]+$/, '').trim();
-        if (cand && cand.length >= 3 && !/transaction|statement|account|balance|opening|closing|summary|page|details|hdfc|icici|state\s*bank|nominee|nomination/i.test(cand)) {
-            meta.customer_name = cand;
+        if (!nameMatch) {
+            for (const line of nonNomineeLines.slice(0, 25)) {
+                const trimmed = line.trim();
+                if (/^[A-Z\s\.\,]{4,35}$/.test(trimmed) && 
+                    !/STATEMENT|BANK|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|INDIAN|INR|TRANSACTION|PAGE|HOME|SAVINGS|CURRENT|LIMITED|DETAILS|REGISTERED|HDFC|ICICI|STATE|AXIS|CANARA|IDFC|KOTAK|PUNJAB|BARODA|UNION|INDUSIND|CENTRAL|YES|KALUPUR|NOMINEE|NOMINATION/i.test(trimmed)) {
+                    nameMatch = [trimmed, trimmed];
+                    break;
+                }
+            }
+        }
+
+        if (nameMatch) {
+            let cand = nameMatch[1] ? nameMatch[1].trim() : nameMatch[0].trim();
+            cand = cand.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '');
+            cand = cand.replace(/[:\.\,]+$/, '').trim();
+            if (cand && cand.length >= 3 && !/transaction|statement|account|balance|opening|closing|summary|page|details|hdfc|icici|state\s*bank|nominee|nomination/i.test(cand)) {
+                meta.customer_name = cand;
+            }
         }
     }
 
