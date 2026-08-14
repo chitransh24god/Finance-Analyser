@@ -328,9 +328,10 @@ function extractMetadata(text, bankName) {
     const cleanExtractedName = (raw) => {
         if (!raw) return "";
         let clean = raw.trim();
-        clean = clean.split(/\n|CRN|Account|Branch|IFSC|Cust\s*ID|Joint|Address|Statement|Period|Nominee/i)[0].trim();
-        clean = clean.replace(/^(MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '');
-        clean = clean.replace(/[:\.\,\-\s]+$/, '').trim();
+        clean = clean.replace(/^(?:Primary\s*Account\s*Holder|Account\s*Holder\(s\)|Account\s*Holder\s*Name|Customer\s*Name|Name\s*of\s*Customer|Name\s*of\s*Account\s*Holder|Account\s*Name|Client\s*Name|Primary\s*Holder|1st\s*Holder|Name\s*:\s*|Name)\s*[:\.]?\s*/i, '');
+        clean = clean.split(/(?:\r?\n|CRN|Account\s*No|A\/c\s*No|Branch\s*:|IFSC|Cust\s*ID|Joint\s*Holder|Address\s*:|Statement\s*Period|Nominee)/i)[0];
+        clean = clean.replace(/^(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+/i, '');
+        clean = clean.replace(/^[:\.\,\-\s]+|[:\.\,\-\s]+$/g, '').trim();
         return clean;
     };
 
@@ -346,14 +347,14 @@ function extractMetadata(text, bankName) {
         }
     } else if (bankName.toLowerCase().includes("kotak")) {
         let kotakCand = "";
-        const kotakMatch = nonNomineeText.match(/(?:Account\s*Holder\(s\)|Customer\s*Name|Name\s*of\s*Customer|Name\s*of\s*Account\s*Holder|Account\s*Name|Primary\s*Account\s*Holder|Name\s*:\s*|Name)[:\s]+([A-Za-z0-9\s\.\,\&\-]{3,50})/i) ||
+        const kotakMatch = nonNomineeText.match(/(?:Account\s*Holder\(s\)|Customer\s*Name|Name\s*of\s*Customer|Name\s*of\s*Account\s*Holder|Account\s*Name|Primary\s*Account\s*Holder|Name\s*:\s*|Name)\s*[:\.]?\s*([A-Za-z0-9\s\.\,\&\-]{3,60})/i) ||
                            nonNomineeText.match(/Statement of (?:Account|Transactions)?\s+(?:in the name of|for|of)?\s*([A-Z\s\.\,\&\-]{3,50})/i);
         if (kotakMatch) {
             kotakCand = cleanExtractedName(kotakMatch[1] || kotakMatch[0]);
         }
 
         if (!kotakCand || kotakCand.length < 3 || /KOTAK|MAHINDRA|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|CRN|SUMMARY|NOMINEE|LIMITED|CUSTOMER/i.test(kotakCand)) {
-            for (const line of nonNomineeLines.slice(0, 20)) {
+            for (const line of nonNomineeLines.slice(0, 25)) {
                 const trimmed = line.trim();
                 if (/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s\.]{3,35})/i.test(trimmed)) {
                     const c = cleanExtractedName(trimmed);
