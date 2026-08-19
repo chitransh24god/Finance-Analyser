@@ -466,6 +466,29 @@ function extractMetadata(text, bankName) {
         }
     }
 
+    // -------------------------------------------------------------
+    // NOMINEE FALLBACK CHECK (Only runs if NO Account Holder Name is found!)
+    // -------------------------------------------------------------
+    if (meta.customer_name === "Valued Customer") {
+        const nomineeLines = cleanText.split('\n').filter(line => isNomineeLine(line));
+        const nomineeText = nomineeLines.join('\n');
+        
+        let nomineeNameMatch = nomineeText.match(/(?:Nominee\s*Name|Name\s*of\s*Nominee|Nominee\s*Details|Nominee)\s*[:\.]?\s*([A-Za-z0-9\s\.\,\&\-]{3,50})/i) ||
+                               nomineeText.match(/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s]{4,35})/i);
+        
+        if (nomineeNameMatch) {
+            let nomCand = cleanExtractedName(nomineeNameMatch[1] || nomineeNameMatch[0]);
+            nomCand = nomCand.replace(/^(?:Registered|Yes|No|Details|Name)\s*/i, '').trim();
+            if (nomCand && nomCand.length >= 3 && !/YES|NO|REGISTERED|NOT\s*REGISTERED|NOT\s*AVAILABLE/i.test(nomCand)) {
+                meta.customer_name = `No Account Holder Found (Only Nominee: ${nomCand})`;
+            } else {
+                meta.customer_name = "No Account Holder Found (Only Nominee Registered)";
+            }
+        } else if (nomineeLines.length > 0) {
+            meta.customer_name = "No Account Holder Found (Only Nominee Registered)";
+        }
+    }
+
     return meta;
 }
 
