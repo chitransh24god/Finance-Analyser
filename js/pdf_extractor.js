@@ -268,6 +268,15 @@ function extractMetadata(text, bankName) {
         }
     }
 
+    // AXIS SPECIFIC METADATA OVERRIDES
+    if (bankName.toLowerCase().includes("axis") && (meta.account_number === "Not Available" || meta.account_number.length < 15)) {
+        const axisAcc = cleanText.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:)\s*[:\.]?\s*([0-9]{15})/i) ||
+                        cleanText.match(/\b(9\d{14}|\d{15})\b/);
+        if (axisAcc) {
+            meta.account_number = axisAcc[1] ? axisAcc[1].trim() : axisAcc[0].trim();
+        }
+    }
+
     // KOTAK SPECIFIC METADATA OVERRIDES
     if (bankName.toLowerCase().includes("kotak") && (meta.account_number === "Not Available" || meta.account_number.length < 10)) {
         const kotakAcc = cleanText.match(/(?:Account\s*(?:No|Num|Number|#)|A\/C\s*(?:No|Num|Number|#)|Acc\s*No|A\/c\s*:)\s*[:\.]?\s*([0-9]{10,16})/i) ||
@@ -385,6 +394,38 @@ function extractMetadata(text, bankName) {
             if (nameCand && nameCand.length >= 3 && !/STATE|BANK|INDIA|SBI|STATEMENT|ACCOUNT|BRANCH|IFSC|SBIN|DATE|PERIOD|BALANCE|SUMMARY|NOMINEE/i.test(nameCand)) {
                 meta.customer_name = nameCand;
             }
+        }
+    } else if (bankName.toLowerCase().includes("axis")) {
+        let axisCand = "";
+        const axisMatch = nonNomineeText.match(/(?:Customer\s*Name|Account\s*Name|Primary\s*Account\s*Holder|Name\s*of\s*Customer|Name\s*of\s*Account\s*Holder|Client\s*Name|Name\s*:\s*|Name)\s*[:\.]?\s*([A-Za-z0-9\s\.\,\&\-]{3,60})/i) ||
+                          nonNomineeText.match(/Statement of (?:Account|Transactions)?\s+(?:in the name of|for|of)?\s*([A-Z\s\.\,\&\-]{3,50})/i);
+        if (axisMatch) {
+            axisCand = cleanExtractedName(axisMatch[1] || axisMatch[0]);
+        }
+
+        if (!axisCand || axisCand.length < 3 || /AXIS|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|UTIB|SUMMARY|NOMINEE|LIMITED|CUSTOMER/i.test(axisCand)) {
+            for (const line of nonNomineeLines.slice(0, 25)) {
+                const trimmed = line.trim();
+                if (/(?:MR|MRS|MS|M\/S|SHRI|SMT|DR)\.?\s+([A-Z\s\.]{3,35})/i.test(trimmed)) {
+                    const c = cleanExtractedName(trimmed);
+                    if (c && c.length >= 3 && !/AXIS|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|UTIB/i.test(c)) {
+                        axisCand = c;
+                        break;
+                    }
+                }
+                if (/^[A-Z\s\.]{4,35}$/.test(trimmed) && 
+                    !/AXIS|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|DATE|PERIOD|BALANCE|INDIAN|INR|TRANSACTION|PAGE|HOME|SAVINGS|CURRENT|LIMITED|DETAILS|REGISTERED|UTIB|SUMMARY|NOMINEE|VALUED|CUSTOMER/i.test(trimmed)) {
+                    const c = cleanExtractedName(trimmed);
+                    if (c && c.length >= 3) {
+                        axisCand = c;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (axisCand && axisCand.length >= 3 && !/AXIS|BANK|STATEMENT|ACCOUNT|BRANCH|IFSC|UTIB|NOMINEE|VALUED/i.test(axisCand)) {
+            meta.customer_name = axisCand;
         }
     }
 
@@ -711,10 +752,150 @@ function parseSbiSpatial(pdfData) {
     return transactions;
 }
 
-// 4. Axis Parser
+// 4. Axis Parser (Hybrid Spatial + Multi-Date Regex Fallback)
 function parseAxis(pdfData) {
-    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})/g;
+    console.log("Parsing Axis Bank statement via hybrid spatial parser.");
+    let txs = parseAxisSpatial(pdfData);
+    if (txs && txs.length > 0) {
+        return txs;
+    }
+    console.log("Axis spatial parser returned 0 rows. Using Axis multi-date regex fallback.");
+    const dateRegex = /(\d{2}[-\/.]\d{2}[-\/.]\d{2,4})|(\d{2}\-[A-Za-z]{3}\-\d{2,4})/g;
     return parseViaRegex(pdfData, dateRegex);
+}
+
+function parseAxisSpatial(pdfData) {
+    const transactions = [];
+    const dateElementRegex = /^\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$|^\d{1,2}\-[A-Za-z]{3}\-\d{2,4}$/;
+    
+    pdfData.pages.forEach(page => {
+        const words = page.items.map(item => ({
+            x: item.x0,
+            y: item.y0,
+            text: item.text.trim()
+        })).filter(w => w.text.length > 0);
+        
+        words.sort((a, b) => b.y - a.y || a.x - b.x);
+        
+        const dateAnchors = [];
+        words.forEach(w => {
+            if (w.x < 130 && dateElementRegex.test(w.text)) {
+                dateAnchors.push(w);
+            }
+        });
+        
+        dateAnchors.sort((a, b) => b.y - a.y);
+        
+        const parsedAnchors = [];
+        dateAnchors.forEach(anchor => {
+            const parsed = standardizeDate(anchor.text);
+            if (parsed) {
+                parsedAnchors.push({ y: anchor.y, date: parsed });
+            }
+        });
+        
+        parsedAnchors.sort((a, b) => b.y - a.y);
+        if (parsedAnchors.length === 0) return;
+        
+        const rowBounds = [];
+        for (let idx = 0; idx < parsedAnchors.length; idx++) {
+            const anchor = parsedAnchors[idx];
+            const yTop = anchor.y;
+            const yBottom = (idx === parsedAnchors.length - 1) ? 40.0 : parsedAnchors[idx + 1].y;
+            rowBounds.push({
+                date: anchor.date,
+                yMin: yBottom + 3.0,
+                yMax: yTop + 8.0
+            });
+        }
+        
+        const pageRows = rowBounds.map(rb => ({
+            date: rb.date,
+            words: [],
+            yMin: rb.yMin,
+            yMax: rb.yMax
+        }));
+        
+        words.forEach(w => {
+            if (/opening balance|particulars|transaction details|statement/i.test(w.text)) return;
+            
+            for (let rIdx = 0; rIdx < pageRows.length; rIdx++) {
+                const r = pageRows[rIdx];
+                if (w.y >= r.yMin && w.y < r.yMax) {
+                    r.words.push(w);
+                    break;
+                }
+            }
+        });
+        
+        pageRows.forEach(r => {
+            const rowWords = r.words;
+            rowWords.sort((a, b) => a.x - b.x);
+            
+            const descWords = [];
+            const numbers = [];
+            
+            rowWords.forEach(w => {
+                const text = w.text.trim();
+                if (!text) return;
+                
+                const isNum = /^-?[\d,\.]+(?:\s*(?:cr|dr))?$/i.test(text);
+                const yearStr = r.date.split("-")[0];
+                const isDateYearOrMonthName = (text === yearStr) || 
+                    ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].includes(text);
+                    
+                if (isNum && !isDateYearOrMonthName) {
+                    numbers.push(w);
+                } else {
+                    if (!["Debit", "Credit", "Balance", "Txn", "Value", "Date", "Description", "Ref", "Cheque", "Branch", "Code"].includes(text)) {
+                        descWords.push(w);
+                    }
+                }
+            });
+            
+            let debitVal = 0.0;
+            let creditVal = 0.0;
+            let balanceVal = 0.0;
+            
+            numbers.sort((a, b) => a.x - b.x);
+            const validNums = numbers.filter(n => cleanAmountJS(n.text) > 0 || n.text.includes("."));
+            
+            if (validNums.length >= 1) {
+                const balNode = validNums[validNums.length - 1];
+                balanceVal = cleanAmountJS(balNode.text);
+                
+                if (validNums.length >= 2) {
+                    const amountNode = validNums[validNums.length - 2];
+                    const amountVal = cleanAmountJS(amountNode.text);
+                    const endX = amountNode.x;
+                    
+                    if (amountNode.text.toLowerCase().includes("dr")) {
+                        debitVal = Math.abs(amountVal);
+                    } else if (amountNode.text.toLowerCase().includes("cr")) {
+                        creditVal = Math.abs(amountVal);
+                    } else if (endX < 420) {
+                        debitVal = amountVal;
+                    } else {
+                        creditVal = amountVal;
+                    }
+                }
+            }
+            
+            const particulars = descWords.map(w => w.text).join(" ").trim();
+            
+            if (particulars || debitVal || creditVal || balanceVal) {
+                transactions.push({
+                    Date: r.date,
+                    Particulars: particulars || "Axis Bank Transaction",
+                    Debit: debitVal,
+                    Credit: creditVal,
+                    Balance: balanceVal
+                });
+            }
+        });
+    });
+    
+    return transactions;
 }
 
 // 5. IDFC Parser
